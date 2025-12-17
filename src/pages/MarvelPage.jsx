@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Sparkles, Play, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -269,8 +270,10 @@ const MarvelPage = () => {
   if (loading) {
     return (
       <>
+        <Helmet>
           <title>Loading Marvel Content... | {siteName}</title>
           <meta name="robots" content="noindex, nofollow" />
+        </Helmet>
         <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
           <Navbar />
           <div style={{ 
@@ -373,7 +376,7 @@ const MarvelPage = () => {
 
   return (
     <>
-      
+      <Helmet>
         {/* Primary Meta Tags */}
         <html lang="en" />
         <title>{getPageTitle()}</title>
@@ -450,6 +453,7 @@ const MarvelPage = () => {
         <script type="application/ld+json">
           {JSON.stringify(websiteStructuredData)}
         </script>
+      </Helmet>
 
       <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
         <Navbar />

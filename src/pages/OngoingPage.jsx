@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Play, Star } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import AnimeCard from '../components/AnimeCard';
@@ -129,9 +130,10 @@ const OngoingPage = () => {
   if (loading) {
     return (
       <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
-
+        <Helmet>
           <title>Loading Ongoing Anime... | AnimeStream</title>
           <meta name="robots" content="noindex" />
+        </Helmet>
         <Navbar />
         <div style={{ 
           display: 'flex', 
@@ -236,6 +238,7 @@ const OngoingPage = () => {
   return (
     <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
       {/* SEO: Comprehensive Meta Tags */}
+      <Helmet>
         {/* Primary Meta Tags */}
         <title>{pageTitle}</title>
         <meta name="title" content={pageTitle} />
@@ -269,7 +272,7 @@ const OngoingPage = () => {
         <script type="application/ld+json">
           {JSON.stringify(generateStructuredData())}
         </script>
-      
+      </Helmet>
 
       <Navbar />
 

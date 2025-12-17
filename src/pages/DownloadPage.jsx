@@ -1,556 +1,812 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Grid, Loader2, Play, Star, Calendar, Film } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import { getAnimeByGenre } from '../services/api';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  Download,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Play,
+  ArrowLeft,
+  Film,
+  Loader2,
+} from "lucide-react";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import {
+  getAnimeInfo,
+  getSeasonInfo,
+  getEpisodes,
+  getEpisodeLinks,
+  getMovieLinks,
+} from "../services/api";
 
-const GenrePage = () => {
-  const { genre } = useParams();
-  const navigate = useNavigate();
-  const [animeList, setAnimeList] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+// ==================== UTILITY FUNCTIONS ====================
+const isMovie = (type) => type?.toLowerCase() === 'movie';
 
-  const genres = [
-    'ACTION', 'ADVENTURE', 'COMEDY', 'DRAMA', 'ECCHI', 'FAMILY', 
-    'FANTASY', 'HISTORICAL', 'MYTHOLOGY', 'MYSTERY', 'SUPERNATURAL', 
-    'ROMANCE', 'HORROR', 'KIDS', 'POLITICS', 'SCHOOL', 'SAMURAI', 'SCI-FI'
-  ];
+const extractDownloadLinks = (links) => {
+  let servers = [];
+  
+  if (links && links.servers && Array.isArray(links.servers)) {
+    servers = links.servers;
+  } else if (links && links.links && Array.isArray(links.links)) {
+    servers = links.links;
+  } else if (Array.isArray(links)) {
+    servers = links;
+  }
+  
+  const downloadableLinks = servers
+    .filter((server) => server.download && server.download.trim() !== "")
+    .map((server) => ({
+      quality: server.name || "Standard Quality",
+      url: server.download.trim(),
+      size: server.size || "Unknown",
+    }));
+  
+  return downloadableLinks;
+};
 
-  useEffect(() => {
-    if (genre) {
-      fetchAnimeByGenre(currentPage);
-    } else {
-      setLoading(false);
-    }
-  }, [genre, currentPage]);
-
-  const fetchAnimeByGenre = async (page) => {
-    setLoading(true);
-    try {
-      console.log(`Fetching ${genre} anime - Page ${page}`);
-      const data = await getAnimeByGenre(genre, page, 20);
-      
-      console.log('Received data:', data);
-      
-      if (data && data.posts) {
-        setAnimeList(data.posts);
-        setTotalPages(data.total_pages || 1);
-      } else {
-        setAnimeList([]);
-        setTotalPages(1);
-      }
-    } catch (error) {
-      console.error('Error fetching anime by genre:', error);
-      setAnimeList([]);
-      setTotalPages(1);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAnimeClick = (anime) => {
-    // Check if it's a movie or series
-    if (anime.type?.toLowerCase() === 'movie') {
-      navigate(`/watch/${anime.slug}`);
-    } else {
-      navigate(`/anime/${anime.slug}`);
-    }
-  };
-
-  const handleGenreChange = (newGenre) => {
-    setCurrentPage(1);
-    navigate(`/genre/${newGenre.toLowerCase()}`);
-  };
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const renderPagination = () => {
-    if (totalPages <= 1) return null;
-
-    const pages = [];
-    const showPages = window.innerWidth < 768 ? 3 : 5; // Show fewer pages on mobile
-    let startPage = Math.max(1, currentPage - Math.floor(showPages / 2));
-    let endPage = Math.min(totalPages, startPage + showPages - 1);
-
-    if (endPage - startPage + 1 < showPages) {
-      startPage = Math.max(1, endPage - showPages + 1);
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    return (
-      <div className="d-flex justify-content-center align-items-center gap-2 mt-4 mt-md-5 flex-wrap px-2">
-        <button
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          style={{
-            padding: '8px 16px',
-            background: currentPage === 1 ? 'rgba(255,255,255,0.1)' : 'rgba(229, 9, 20, 0.8)',
-            border: 'none',
-            borderRadius: '8px',
-            color: '#fff',
-            cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-            fontWeight: '600',
-            transition: 'all 0.3s',
-            fontSize: '0.9rem'
-          }}
-        >
-          Prev
-        </button>
-
-        {startPage > 1 && (
-          <>
-            <button
-              onClick={() => handlePageChange(1)}
-              style={{
-                padding: '8px 12px',
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: '8px',
-                color: '#fff',
-                cursor: 'pointer',
-                fontWeight: '600',
-                minWidth: '40px',
-                fontSize: '0.9rem'
-              }}
-            >
-              1
-            </button>
-            {startPage > 2 && <span style={{ color: '#666', fontSize: '0.9rem' }}>...</span>}
-          </>
-        )}
-
-        {pages.map((page) => (
-          <button
-            key={page}
-            onClick={() => handlePageChange(page)}
-            style={{
-              padding: '8px 12px',
-              background: page === currentPage ? '#e50914' : 'rgba(255,255,255,0.1)',
-              border: page === currentPage ? 'none' : '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '8px',
-              color: '#fff',
-              cursor: 'pointer',
-              fontWeight: '600',
-              minWidth: '40px',
-              transition: 'all 0.3s',
-              fontSize: '0.9rem'
-            }}
-          >
-            {page}
-          </button>
-        ))}
-
-        {endPage < totalPages && (
-          <>
-            {endPage < totalPages - 1 && <span style={{ color: '#666', fontSize: '0.9rem' }}>...</span>}
-            <button
-              onClick={() => handlePageChange(totalPages)}
-              style={{
-                padding: '8px 12px',
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: '8px',
-                color: '#fff',
-                cursor: 'pointer',
-                fontWeight: '600',
-                minWidth: '40px',
-                fontSize: '0.9rem'
-              }}
-            >
-              {totalPages}
-            </button>
-          </>
-        )}
-
-        <button
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          style={{
-            padding: '8px 16px',
-            background: currentPage === totalPages ? 'rgba(255,255,255,0.1)' : 'rgba(229, 9, 20, 0.8)',
-            border: 'none',
-            borderRadius: '8px',
-            color: '#fff',
-            cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-            fontWeight: '600',
-            transition: 'all 0.3s',
-            fontSize: '0.9rem'
-          }}
-        >
-          Next
-        </button>
+// ==================== LOADING COMPONENT ====================
+const LoadingScreen = () => (
+  <div style={{ background: "#0a0a0a", minHeight: "100vh", color: "#fff" }}>
+    <Navbar />
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: "calc(100vh - 80px)",
+      marginTop: "80px",
+      padding: "20px"
+    }}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{
+          width: "60px",
+          height: "60px",
+          border: "4px solid rgba(34, 197, 94, 0.2)",
+          borderTop: "4px solid #22c55e",
+          borderRadius: "50%",
+          animation: "spinLoader 1s linear infinite",
+          margin: "0 auto 20px"
+        }} />
+        <h2 style={{
+          fontSize: "1.3rem",
+          fontWeight: "600",
+          color: "#22c55e"
+        }}>
+          Loading Download Links...
+        </h2>
       </div>
-    );
+    </div>
+    <style>{`
+      @keyframes spinLoader {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `}</style>
+  </div>
+);
+
+// ==================== INLINE LOADING OVERLAY ====================
+const LoadingOverlay = ({ message = "Loading..." }) => (
+  <>
+    <style>{`
+      @keyframes spinRotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    `}</style>
+    <div style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: "rgba(10, 10, 10, 0.95)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999
+    }}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ display: "inline-block" }}>
+          <Loader2 
+            size={48} 
+            color="#22c55e" 
+            style={{
+              animation: "spinRotate 1s linear infinite",
+              marginBottom: "15px",
+              display: "block"
+            }}
+          />
+        </div>
+        <h3 style={{
+          fontSize: "1.2rem",
+          fontWeight: "600",
+          color: "#22c55e",
+          margin: 0
+        }}>
+          {message}
+        </h3>
+      </div>
+    </div>
+  </>
+);
+
+// ==================== NAVIGATION BUTTON COMPONENT ====================
+const NavigationButton = ({ onClick, disabled, icon: Icon, text, variant = 'default', loading = false }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const getStyles = () => {
+    const baseStyle = {
+      flex: 1,
+      border: "none",
+      color: "#fff",
+      padding: "15px",
+      borderRadius: "10px",
+      fontSize: "1rem",
+      fontWeight: "600",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: "8px",
+      cursor: disabled || loading ? "not-allowed" : "pointer",
+      opacity: disabled || loading ? 0.5 : 1,
+      transition: "all 0.2s",
+      position: "relative"
+    };
+
+    if (variant === 'primary') {
+      return {
+        ...baseStyle,
+        background: "#e50914",
+      };
+    }
+
+    return {
+      ...baseStyle,
+      background: isHovered && !disabled && !loading ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.1)",
+    };
   };
 
   return (
-    <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
-      <Navbar />
-      
-      <div className="container" style={{ marginTop: '100px', paddingBottom: '60px', paddingLeft: '15px', paddingRight: '15px' }}>
-        {/* Header */}
-        <div className="mb-4 mb-md-5 text-center text-md-start">
-          <h1 style={{
-            fontSize: 'clamp(1.5rem, 5vw, 2.5rem)',
-            fontWeight: 'bold',
-            marginBottom: '10px'
-          }}>
-            <Grid 
-              size={window.innerWidth < 768 ? 32 : 45} 
-              className="me-2" 
-              style={{ 
-                color: '#e50914', 
-                display: 'inline', 
-                marginBottom: '4px',
-                verticalAlign: 'middle'
-              }} 
-            />
-            {genre ? genre.toUpperCase() : 'Browse by Genre'}
-          </h1>
-          <p className="lead" style={{ 
-            color: '#999', 
-            fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
-            margin: 0
-          }}>
-            {genre 
-              ? `Discover amazing ${genre.toLowerCase()} anime series and movies` 
-              : 'Select a genre to explore'}
-          </p>
-        </div>
-
-        {/* Genre Filter Buttons */}
-        <div className="mb-4 mb-md-5">
-          <div className="d-flex flex-wrap gap-2 justify-content-center justify-content-md-start">
-            {genres.map((g) => (
-              <button
-                key={g}
-                onClick={() => handleGenreChange(g)}
-                style={{
-                  padding: 'clamp(8px, 2vw, 10px) clamp(12px, 3vw, 20px)',
-                  background: genre?.toUpperCase() === g ? '#e50914' : 'rgba(255,255,255,0.1)',
-                  border: genre?.toUpperCase() === g ? 'none' : '1px solid rgba(255,255,255,0.2)',
-                  borderRadius: '25px',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  fontWeight: genre?.toUpperCase() === g ? '600' : '500',
-                  fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
-                  transition: 'all 0.3s',
-                  textTransform: 'uppercase',
-                  whiteSpace: 'nowrap'
-                }}
-                onMouseEnter={(e) => {
-                  if (genre?.toUpperCase() !== g) {
-                    e.currentTarget.style.background = 'rgba(229, 9, 20, 0.3)';
-                    e.currentTarget.style.borderColor = 'rgba(229, 9, 20, 0.5)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (genre?.toUpperCase() !== g) {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
-                  }
-                }}
-              >
-                {g}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Loading State */}
-        {loading && (
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            minHeight: '300px',
-            flexDirection: 'column',
-            gap: '20px',
-            padding: '20px'
-          }}>
-            <Loader2 size={window.innerWidth < 768 ? 40 : 48} color="#e50914" style={{ animation: 'spin 1s linear infinite' }} />
-            <p style={{ 
-              color: '#999', 
-              fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
-              textAlign: 'center',
-              margin: 0
-            }}>
-              Loading {genre} anime...
-            </p>
-          </div>
-        )}
-
-        {/* Anime Grid */}
-        {!loading && animeList.length > 0 && (
-          <>
-            <div className="row g-3 g-md-4">
-              {animeList.map((anime) => (
-                <div key={anime.id} className="col-6 col-sm-4 col-md-3 col-lg-2">
-                  <div
-                    onClick={() => handleAnimeClick(anime)}
-                    style={{
-                      cursor: 'pointer',
-                      borderRadius: 'clamp(8px, 2vw, 12px)',
-                      overflow: 'hidden',
-                      background: 'rgba(255,255,255,0.05)',
-                      transition: 'all 0.3s ease',
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-8px)';
-                      e.currentTarget.style.boxShadow = '0 10px 30px rgba(229, 9, 20, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = 'none';
-                    }}
-                  >
-                    <div style={{ position: 'relative', paddingBottom: '140%', overflow: 'hidden', background: '#222' }}>
-                      {/* Using TMDB image path like HomePage */}
-                      <img
-                        src={`https://image.tmdb.org/t/p/w500${anime.image?.poster}`}
-                        alt={anime.name}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover'
-                        }}
-                        onError={(e) => {
-                          e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="300" height="450"%3E%3Crect fill="%23222" width="300" height="450"/%3E%3Ctext fill="%23999" font-family="sans-serif" font-size="18" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3ENo Image%3C/text%3E%3C/svg%3E';
-                        }}
-                      />
-                      {/* Rating Badge */}
-                      {anime.rating && parseFloat(anime.rating) > 0 && (
-                        <div style={{
-                          position: 'absolute',
-                          top: 'clamp(6px, 1.5vw, 8px)',
-                          right: 'clamp(6px, 1.5vw, 8px)',
-                          background: 'rgba(229, 9, 20, 0.9)',
-                          padding: 'clamp(3px, 1vw, 4px) clamp(6px, 1.5vw, 8px)',
-                          borderRadius: 'clamp(4px, 1vw, 6px)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          fontSize: 'clamp(0.65rem, 1.5vw, 0.75rem)',
-                          fontWeight: '600'
-                        }}>
-                          <Star size={window.innerWidth < 768 ? 10 : 12} fill="#fff" />
-                          {anime.rating}
-                        </div>
-                      )}
-                      {/* Type Badge */}
-                      {anime.type && (
-                        <div style={{
-                          position: 'absolute',
-                          top: 'clamp(6px, 1.5vw, 8px)',
-                          left: 'clamp(6px, 1.5vw, 8px)',
-                          background: anime.type.toLowerCase() === 'movie' ? 'rgba(34, 197, 94, 0.9)' : 'rgba(59, 130, 246, 0.9)',
-                          padding: 'clamp(3px, 1vw, 4px) clamp(6px, 1.5vw, 8px)',
-                          borderRadius: 'clamp(4px, 1vw, 6px)',
-                          fontSize: 'clamp(0.6rem, 1.5vw, 0.7rem)',
-                          fontWeight: '600',
-                          textTransform: 'uppercase',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}>
-                          {anime.type.toLowerCase() === 'movie' && <Film size={window.innerWidth < 768 ? 10 : 12} />}
-                          {anime.type}
-                        </div>
-                      )}
-                      {/* Play Overlay */}
-                      <div style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
-                        padding: 'clamp(20px, 5vw, 30px) clamp(8px, 2vw, 10px) clamp(8px, 2vw, 10px)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        opacity: 0,
-                        transition: 'opacity 0.3s'
-                      }}
-                      className="play-overlay"
-                      >
-                        <div style={{
-                          width: 'clamp(40px, 10vw, 50px)',
-                          height: 'clamp(40px, 10vw, 50px)',
-                          borderRadius: '50%',
-                          background: 'rgba(229, 9, 20, 0.9)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}>
-                          <Play size={window.innerWidth < 768 ? 20 : 24} fill="#fff" />
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ padding: 'clamp(8px, 2vw, 12px)' }}>
-                      <h6 style={{
-                        fontWeight: '600',
-                        fontSize: 'clamp(0.75rem, 2vw, 0.9rem)',
-                        marginBottom: 'clamp(4px, 1vw, 6px)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        lineHeight: '1.3',
-                        minHeight: '2.6em'
-                      }}>
-                        {anime.name}
-                      </h6>
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 'clamp(4px, 1vw, 8px)',
-                        fontSize: 'clamp(0.65rem, 1.5vw, 0.75rem)',
-                        color: '#999',
-                        flexWrap: 'wrap'
-                      }}>
-                        {anime.year && (
-                          <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <Calendar size={window.innerWidth < 768 ? 10 : 12} />
-                            {anime.year}
-                          </span>
-                        )}
-                        {anime.episodes && (
-                          <span>• {anime.episodes} eps</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Pagination */}
-            {renderPagination()}
-          </>
-        )}
-
-        {/* No Results */}
-        {!loading && animeList.length === 0 && genre && (
-          <div style={{
-            textAlign: 'center',
-            padding: 'clamp(40px, 10vw, 60px) clamp(15px, 3vw, 20px)',
-            background: 'rgba(255,255,255,0.05)',
-            borderRadius: 'clamp(8px, 2vw, 12px)',
-            border: '1px dashed rgba(255,255,255,0.2)'
-          }}>
-            <Film size={window.innerWidth < 768 ? 48 : 64} style={{ color: '#666', marginBottom: '20px' }} />
-            <h3 style={{ 
-              color: '#999', 
-              marginBottom: '10px',
-              fontSize: 'clamp(1rem, 3vw, 1.5rem)'
-            }}>
-              No anime found
-            </h3>
-            <p style={{ 
-              color: '#666',
-              fontSize: 'clamp(0.85rem, 2vw, 1rem)',
-              margin: 0
-            }}>
-              No {genre.toLowerCase()} anime available at the moment. Try selecting a different genre.
-            </p>
-          </div>
-        )}
-
-        {/* No Genre Selected */}
-        {!genre && !loading && (
-          <div style={{
-            textAlign: 'center',
-            padding: 'clamp(40px, 10vw, 60px) clamp(15px, 3vw, 20px)',
-            background: 'rgba(255,255,255,0.05)',
-            borderRadius: 'clamp(8px, 2vw, 12px)',
-            border: '1px dashed rgba(255,255,255,0.2)'
-          }}>
-            <Grid size={window.innerWidth < 768 ? 48 : 64} style={{ color: '#e50914', marginBottom: '20px' }} />
-            <h3 style={{ 
-              color: '#fff', 
-              marginBottom: '10px',
-              fontSize: 'clamp(1rem, 3vw, 1.5rem)'
-            }}>
-              Select a Genre
-            </h3>
-            <p style={{ 
-              color: '#999',
-              fontSize: 'clamp(0.85rem, 2vw, 1rem)',
-              margin: 0
-            }}>
-              Choose a genre from the options above to start exploring
-            </p>
-          </div>
-        )}
-      </div>
-
-      <Footer />
-
+    <button
+      onClick={onClick}
+      disabled={disabled || loading}
+      style={getStyles()}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <style>{`
-        @keyframes spin {
+        @keyframes buttonSpin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
         }
-
-        .play-overlay {
-          opacity: 0;
-        }
-
-        /* Desktop hover effects */
-        @media (min-width: 768px) {
-          .col-6:hover .play-overlay,
-          .col-sm-4:hover .play-overlay,
-          .col-md-3:hover .play-overlay,
-          .col-lg-2:hover .play-overlay {
-            opacity: 1;
-          }
-        }
-
-        /* Mobile optimizations */
-        @media (max-width: 767.98px) {
-          .container {
-            max-width: 100%;
-            padding-left: 10px !important;
-            padding-right: 10px !important;
-          }
-          
-          .row {
-            margin-left: -6px;
-            margin-right: -6px;
-          }
-          
-          .row > * {
-            padding-left: 6px;
-            padding-right: 6px;
-          }
-        }
-
-        /* Tablet adjustments */
-        @media (min-width: 768px) and (max-width: 991.98px) {
-          .container {
-            padding-left: 20px !important;
-            padding-right: 20px !important;
-          }
-        }
       `}</style>
+      {loading ? (
+        <>
+          <span style={{ display: "inline-block", animation: "buttonSpin 1s linear infinite" }}>
+            <Loader2 size={20} />
+          </span>
+          {text}
+        </>
+      ) : (
+        <>
+          {Icon && text !== 'Next' && <Icon size={20} />}
+          {text}
+          {Icon && text === 'Next' && <Icon size={20} />}
+        </>
+      )}
+    </button>
+  );
+};
+
+// ==================== TITLE SECTION COMPONENT ====================
+const TitleSection = ({ animeData, currentEpisode, contentIsMovie }) => (
+  <div style={{
+    background: "rgba(255,255,255,0.05)",
+    padding: "20px",
+    borderRadius: "12px",
+    marginBottom: "20px"
+  }}>
+    <h2 style={{ fontSize: "1.5rem", marginBottom: "8px" }}>
+      {contentIsMovie && <Film size={24} className="me-2" style={{ display: "inline", marginBottom: "4px" }} />}
+      {animeData?.name}
+    </h2>
+    {contentIsMovie ? (
+      <p style={{ color: "#22c55e", fontSize: "1.1rem", margin: 0 }}>
+        <span className="badge bg-info me-2">Movie</span>
+        Download available below
+      </p>
+    ) : (
+      <p style={{ color: "#22c55e", fontSize: "1.1rem", margin: 0 }}>
+        Episode {currentEpisode?.number}: {currentEpisode?.name}
+      </p>
+    )}
+  </div>
+);
+
+// ==================== SEASON SELECTOR COMPONENT ====================
+const SeasonSelector = ({ seasons, selectedSeason, onSeasonChange, disabled }) => {
+  if (seasons.length <= 1) return null;
+
+  return (
+    <div style={{
+      background: "rgba(255,255,255,0.05)",
+      borderRadius: "12px",
+      padding: "20px",
+      marginBottom: "20px",
+      opacity: disabled ? 0.6 : 1,
+      pointerEvents: disabled ? "none" : "auto"
+    }}>
+      <h4 style={{ fontSize: "1.1rem", marginBottom: "15px", color: "#22c55e" }}>
+        Select Season
+      </h4>
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+        gap: "10px"
+      }}>
+        {seasons.map((season) => (
+          <button
+            key={season.id}
+            onClick={() => onSeasonChange(season)}
+            disabled={disabled}
+            style={{
+              background: selectedSeason?.id === season.id ? "#22c55e" : "rgba(255,255,255,0.1)",
+              border: "none",
+              color: "#fff",
+              padding: "12px",
+              borderRadius: "8px",
+              fontSize: "1rem",
+              fontWeight: selectedSeason?.id === season.id ? "600" : "400",
+              cursor: disabled ? "not-allowed" : "pointer"
+            }}
+          >
+            Season {season.num}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
 
-export default GenrePage;
+// ==================== EPISODE GRID COMPONENT ====================
+const EpisodeGrid = ({ episodes, currentEpisode, onEpisodeSelect, disabled }) => (
+  <div style={{
+    background: "rgba(255,255,255,0.05)",
+    borderRadius: "12px",
+    padding: "20px",
+    marginBottom: "20px",
+    opacity: disabled ? 0.6 : 1,
+    pointerEvents: disabled ? "none" : "auto"
+  }}>
+    <h4 style={{ fontSize: "1.1rem", marginBottom: "15px", color: "#22c55e" }}>
+      All Episodes ({episodes.length})
+    </h4>
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+      gap: "10px",
+      maxHeight: "500px",
+      overflowY: "auto"
+    }}>
+      {episodes.map((episode) => (
+        <EpisodeButton
+          key={episode.id}
+          episode={episode}
+          isActive={episode.id === currentEpisode?.id}
+          onClick={() => onEpisodeSelect(episode)}
+          disabled={disabled}
+        />
+      ))}
+    </div>
+  </div>
+);
+
+const EpisodeButton = ({ episode, isActive, onClick, disabled }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        background: isActive ? "#22c55e" : (isHovered ? "rgba(34, 197, 94, 0.2)" : "rgba(255,255,255,0.1)"),
+        border: isActive ? "2px solid #16a34a" : "1px solid rgba(255,255,255,0.2)",
+        color: "#fff",
+        padding: "15px 10px",
+        borderRadius: "8px",
+        cursor: disabled ? "not-allowed" : "pointer",
+        textAlign: "center",
+        transition: "all 0.2s"
+      }}
+    >
+      <div style={{ fontWeight: "600", fontSize: "1rem", marginBottom: "4px" }}>
+        EP {episode.number}
+      </div>
+      <div style={{
+        fontSize: "0.75rem",
+        color: isActive ? "#fff" : "#999",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap"
+      }}>
+        {episode.name}
+      </div>
+    </button>
+  );
+};
+
+// ==================== DOWNLOAD LINKS SECTION ====================
+const DownloadLinksSection = ({ downloadLinks, downloadError, contentIsMovie, loading }) => (
+  <div style={{
+    background: "linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.05) 100%)",
+    border: "1px solid rgba(34, 197, 94, 0.3)",
+    borderRadius: "12px",
+    padding: "25px 20px",
+    marginBottom: "20px",
+    position: "relative"
+  }}>
+    <div style={{ textAlign: "center", marginBottom: "25px" }}>
+      <Download size={48} color="#22c55e" style={{ marginBottom: "10px" }} />
+      <h3 style={{ color: "#22c55e", fontSize: "1.3rem", marginBottom: "5px" }}>
+        Download Links {contentIsMovie && "(Movie)"}
+      </h3>
+      <p style={{ color: "#999", fontSize: "0.9rem", margin: 0 }}>
+        Tap to download
+      </p>
+    </div>
+
+    {loading ? (
+      <div style={{ textAlign: "center", padding: "40px 20px" }}>
+        <style>{`
+          @keyframes downloadSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
+        <div style={{ display: "inline-block", animation: "downloadSpin 1s linear infinite" }}>
+          <Loader2 
+            size={40} 
+            color="#22c55e" 
+            style={{ 
+              marginBottom: "10px",
+              display: "block"
+            }} 
+          />
+        </div>
+        <p style={{ color: "#999", margin: 0 }}>Loading download links...</p>
+      </div>
+    ) : downloadError ? (
+      <div style={{
+        background: "rgba(239, 68, 68, 0.1)",
+        border: "1px solid rgba(239, 68, 68, 0.3)",
+        borderRadius: "8px",
+        padding: "20px",
+        textAlign: "center"
+      }}>
+        <p style={{ color: "#ef4444", margin: 0 }}>
+          ⚠️ No download links available for this {contentIsMovie ? 'movie' : 'episode'}
+        </p>
+      </div>
+    ) : downloadLinks.length > 0 ? (
+      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        {downloadLinks.map((link, index) => (
+          <DownloadLinkCard key={index} link={link} />
+        ))}
+      </div>
+    ) : (
+      <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>
+        No download links available
+      </div>
+    )}
+  </div>
+);
+
+const DownloadLinkCard = ({ link }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        background: isHovered ? "rgba(34, 197, 94, 0.15)" : "rgba(255,255,255,0.05)",
+        border: `1px solid ${isHovered ? "#22c55e" : "rgba(34, 197, 94, 0.3)"}`,
+        borderRadius: "10px",
+        padding: "18px",
+        textDecoration: "none",
+        color: "#fff",
+        transition: "all 0.2s"
+      }}
+    >
+      <div>
+        <div style={{
+          color: "#22c55e",
+          fontWeight: "600",
+          fontSize: "1.1rem",
+          marginBottom: "4px"
+        }}>
+          {link.quality}
+        </div>
+        <div style={{ color: "#999", fontSize: "0.85rem" }}>
+          {link.size}
+        </div>
+      </div>
+      <ExternalLink size={24} color="#22c55e" />
+    </a>
+  );
+};
+
+// ==================== DESCRIPTION SECTION ====================
+const DescriptionSection = ({ overview }) => (
+  <div style={{
+    background: "rgba(255,255,255,0.05)",
+    borderRadius: "12px",
+    padding: "20px",
+    marginTop: "20px"
+  }}>
+    <h4 style={{ fontSize: "1.1rem", marginBottom: "12px" }}>About</h4>
+    <p style={{ color: "#ccc", lineHeight: "1.6", margin: 0 }}>
+      {overview || "No description available."}
+    </p>
+  </div>
+);
+
+// ==================== MAIN DOWNLOAD PAGE ====================
+const DownloadPage = () => {
+  const { slug, episodeId } = useParams();
+  const navigate = useNavigate();
+
+  const [animeData, setAnimeData] = useState(null);
+  const [seasons, setSeasons] = useState([]);
+  const [selectedSeason, setSelectedSeason] = useState(null);
+  const [episodes, setEpisodes] = useState([]);
+  const [currentEpisode, setCurrentEpisode] = useState(null);
+  const [downloadLinks, setDownloadLinks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [episodeLoading, setEpisodeLoading] = useState(false);
+  const [downloadError, setDownloadError] = useState(false);
+  const [contentIsMovie, setContentIsMovie] = useState(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setDownloadError(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      try {
+        console.log('Fetching anime info for slug:', slug);
+        const anime = await getAnimeInfo(slug);
+        
+        if (!anime) {
+          console.error('No anime data received for slug:', slug);
+          setDownloadError(true);
+          setLoading(false);
+          return;
+        }
+
+        console.log('Anime data received:', anime);
+        setAnimeData(anime);
+
+        const movieType = isMovie(anime.type);
+        console.log('Is movie:', movieType, '| Type:', anime.type);
+        setContentIsMovie(movieType);
+
+        if (movieType) {
+          console.log('Loading movie download links for:', anime.name);
+          
+          try {
+            const movieLinks = await getMovieLinks(slug);
+            console.log('Movie links response:', movieLinks);
+            
+            const links = extractDownloadLinks(movieLinks);
+            console.log('Extracted download links:', links);
+            
+            if (links.length > 0) {
+              setDownloadLinks(links);
+            } else {
+              console.error('No download links found for movie');
+              setDownloadError(true);
+            }
+          } catch (error) {
+            console.error('Error fetching movie download links:', error);
+            setDownloadError(true);
+          }
+        } else {
+          console.log('Loading series episodes for:', anime.name);
+          const seasonData = await getSeasonInfo(anime.id);
+          const allSeasons = seasonData.seasons || [];
+          setSeasons(allSeasons);
+
+          if (allSeasons.length > 0) {
+            const firstSeason = allSeasons[0];
+            setSelectedSeason(firstSeason);
+
+            const episodeData = await getEpisodes(firstSeason.id);
+            setEpisodes(episodeData || []);
+
+            const episode = episodeId
+              ? episodeData.find((ep) => ep.id === parseInt(episodeId))
+              : episodeData[0];
+
+            setCurrentEpisode(episode);
+
+            if (episode) {
+              const links = await getEpisodeLinks(episode.id);
+              const downloadableLinks = extractDownloadLinks(links);
+              
+              if (downloadableLinks.length > 0) {
+                setDownloadLinks(downloadableLinks);
+              } else {
+                setDownloadError(true);
+              }
+            }
+          } else {
+            console.warn('No seasons found for series');
+            setDownloadError(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching download data:", error);
+        setDownloadError(true);
+      }
+
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [slug, episodeId]);
+
+  const handleSeasonChange = async (season) => {
+    setSelectedSeason(season);
+    setEpisodeLoading(true);
+
+    try {
+      const episodeData = await getEpisodes(season.id);
+      setEpisodes(episodeData || []);
+
+      if (episodeData && episodeData.length > 0) {
+        await handleEpisodeSelect(episodeData[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching episodes:", error);
+    }
+
+    setEpisodeLoading(false);
+  };
+
+  const handleEpisodeSelect = async (episode) => {
+    setCurrentEpisode(episode);
+    setEpisodeLoading(true);
+    setDownloadError(false);
+    setDownloadLinks([]);
+
+    try {
+      const links = await getEpisodeLinks(episode.id);
+      const downloadableLinks = extractDownloadLinks(links);
+      
+      if (downloadableLinks.length > 0) {
+        setDownloadLinks(downloadableLinks);
+      } else {
+        setDownloadError(true);
+      }
+
+      navigate(`/download/${slug}/${episode.id}`, { replace: true });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (error) {
+      console.error("Error fetching download links:", error);
+      setDownloadError(true);
+    }
+
+    setEpisodeLoading(false);
+  };
+
+  const handleNextEpisode = () => {
+    if (contentIsMovie || episodeLoading) return;
+    const currentIndex = episodes.findIndex((ep) => ep.id === currentEpisode.id);
+    if (currentIndex < episodes.length - 1) {
+      handleEpisodeSelect(episodes[currentIndex + 1]);
+    }
+  };
+
+  const handlePreviousEpisode = () => {
+    if (contentIsMovie || episodeLoading) return;
+    const currentIndex = episodes.findIndex((ep) => ep.id === currentEpisode.id);
+    if (currentIndex > 0) {
+      handleEpisodeSelect(episodes[currentIndex - 1]);
+    }
+  };
+
+  const handleWatchClick = () => {
+    if (contentIsMovie) {
+      navigate(`/watch/${slug}`);
+    } else {
+      navigate(`/watch/${slug}/${currentEpisode?.id}`);
+    }
+  };
+
+  if (loading && !animeData) {
+    return <LoadingScreen />;
+  }
+
+  if (!loading && !animeData) {
+    return (
+      <div style={{ background: "#0a0a0a", minHeight: "100vh", color: "#fff" }}>
+        <Navbar />
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: "calc(100vh - 80px)",
+          marginTop: "80px",
+          padding: "20px",
+          textAlign: "center"
+        }}>
+          <div>
+            <h2 style={{ color: "#ef4444", marginBottom: "10px" }}>Error Loading Anime</h2>
+            <p style={{ color: "#999", marginBottom: "20px" }}>
+              Could not load anime information. Please try again.
+            </p>
+            <button
+              onClick={() => navigate(-1)}
+              style={{
+                background: "#e50914",
+                border: "none",
+                color: "#fff",
+                padding: "12px 24px",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "1rem"
+              }}
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ background: "#0a0a0a", minHeight: "100vh", color: "#fff" }}>
+      <Navbar />
+
+      {episodeLoading && <LoadingOverlay message="Loading Episode..." />}
+
+      <div style={{ marginTop: "80px", paddingBottom: "40px" }}>
+        <div style={{ padding: "0 15px", maxWidth: "1200px", margin: "0 auto" }}>
+          
+          <button
+            onClick={() => navigate(`/anime/${slug}`)}
+            style={{
+              background: "rgba(255,255,255,0.1)",
+              border: "none",
+              color: "#fff",
+              padding: "12px 20px",
+              borderRadius: "8px",
+              marginTop: "20px",
+              marginBottom: "20px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              cursor: "pointer",
+              fontSize: "1rem",
+              fontWeight: "500",
+              transition: "all 0.2s"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(255,255,255,0.15)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+            }}
+          >
+            <ArrowLeft size={20} />
+            Back to Anime
+          </button>
+
+          <TitleSection 
+            animeData={animeData} 
+            currentEpisode={currentEpisode}
+            contentIsMovie={contentIsMovie}
+          />
+
+          {!contentIsMovie && (
+            <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+              <NavigationButton
+                onClick={handlePreviousEpisode}
+                disabled={episodes.findIndex((ep) => ep.id === currentEpisode?.id) === 0}
+                loading={episodeLoading}
+                icon={ChevronLeft}
+                text="Previous"
+              />
+
+              <NavigationButton
+                onClick={handleWatchClick}
+                disabled={episodeLoading}
+                icon={Play}
+                text="Watch"
+                variant="primary"
+              />
+
+              <NavigationButton
+                onClick={handleNextEpisode}
+                disabled={episodes.findIndex((ep) => ep.id === currentEpisode?.id) === episodes.length - 1}
+                loading={episodeLoading}
+                icon={ChevronRight}
+                text="Next"
+              />
+            </div>
+          )}
+
+          {contentIsMovie && (
+            <div style={{ marginBottom: "20px" }}>
+              <button
+                onClick={handleWatchClick}
+                style={{
+                  width: "100%",
+                  background: "#e50914",
+                  border: "none",
+                  color: "#fff",
+                  padding: "15px",
+                  borderRadius: "10px",
+                  fontSize: "1rem",
+                  fontWeight: "600",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  cursor: "pointer"
+                }}
+              >
+                <Play size={20} />
+                Watch Movie
+              </button>
+            </div>
+          )}
+
+          {!contentIsMovie && (
+            <SeasonSelector 
+              seasons={seasons}
+              selectedSeason={selectedSeason}
+              onSeasonChange={handleSeasonChange}
+              disabled={episodeLoading}
+            />
+          )}
+
+          {!contentIsMovie && episodes.length > 0 && (
+            <EpisodeGrid
+              episodes={episodes}
+              currentEpisode={currentEpisode}
+              onEpisodeSelect={handleEpisodeSelect}
+              disabled={episodeLoading}
+            />
+          )}
+
+          <DownloadLinksSection
+            downloadLinks={downloadLinks}
+            downloadError={downloadError}
+            contentIsMovie={contentIsMovie}
+            loading={episodeLoading}
+          />
+
+          <DescriptionSection overview={animeData?.overview} />
+
+        </div>
+      </div>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default DownloadPage;
