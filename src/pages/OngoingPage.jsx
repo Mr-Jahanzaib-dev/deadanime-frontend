@@ -13,6 +13,9 @@ const OngoingPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState('new');
 
+  // SEO Configuration
+  const siteName = 'ToonVerse Haven';
+
   useEffect(() => {
     const fetchOngoingAnime = async () => {
       setLoading(true);
@@ -109,8 +112,8 @@ const OngoingPage = () => {
     const featuredAnime = ongoingAnime[0] || {};
     
     const pageTitle = currentPage > 1 
-      ? `Ongoing Anime Series - Page ${currentPage} | AnimeStream`
-      : `Ongoing Anime Series - Watch Latest Episodes | AnimeStream`;
+      ? `Ongoing Anime Series - Page ${currentPage} | ${siteName}`
+      : `Ongoing Anime Series - Watch Latest Episodes | ${siteName}`;
     
     const description = currentPage > 1
       ? `Browse ongoing anime series - Page ${currentPage}. Watch latest episodes including ${animeNames}. Stream currently airing anime in HD quality.`
@@ -131,7 +134,7 @@ const OngoingPage = () => {
     return (
       <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
         <Helmet>
-          <title>Loading Ongoing Anime... | AnimeStream</title>
+          <title>Loading Ongoing Anime... | {siteName}</title>
           <meta name="robots" content="noindex" />
         </Helmet>
         <Navbar />
@@ -251,7 +254,7 @@ const OngoingPage = () => {
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={description} />
         <meta property="og:image" content={ogImage} />
-        <meta property="og:site_name" content="AnimeStream" />
+        <meta property="og:site_name" content={siteName} />
         
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />

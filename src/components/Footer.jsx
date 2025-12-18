@@ -9,7 +9,7 @@ const Footer = () => {
           <div className="col-md-4 mb-4">
             <h4 className="fw-bold mb-3" style={{ color: '#fff' }}>
               <Play size={24} className="me-2" style={{ fill: '#e50914', color: '#e50914' }} />
-              DeadAnime<span style={{ color: '#e50914' }}>Haven</span>
+              ToonVerse<span style={{ color: '#e50914' }}>Haven</span>
             </h4>
             <p style={{ color: '#999' }}>
               Your ultimate destination for watching anime in multiple languages including Hindi, Tamil, Telugu, and more.
@@ -74,7 +74,7 @@ const Footer = () => {
         <hr style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '30px 0' }} />
         
         <div className="text-center" style={{ color: '#666' }}>
-          <p className="mb-0">© 2025 DeadAnime. All rights reserved.</p>
+          <p className="mb-0">© 2025 ToonVerse Haven. All rights reserved.</p>
         </div>
       </div>
     </footer>

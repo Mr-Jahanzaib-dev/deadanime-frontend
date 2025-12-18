@@ -18,6 +18,9 @@ const CompletedPage = () => {
   const [sortBy, setSortBy] = useState('rating');
   const itemsPerPage = 18;
 
+  // SEO Configuration
+  const siteName = 'ToonVerse Haven';
+
   const handleAnimeClick = (anime) => {
     navigate(`/anime/${anime.slug}`);
   };
@@ -212,8 +215,8 @@ const CompletedPage = () => {
     const featuredAnime = completedAnime[0] || {};
     
     const pageTitle = currentPage > 1 
-      ? `Completed Anime Series - Page ${currentPage} | AnimeStream`
-      : `Completed Anime Series - Finished Shows Ready to Binge | AnimeStream`;
+      ? `Completed Anime Series - Page ${currentPage} | ${siteName}`
+      : `Completed Anime Series - Finished Shows Ready to Binge | ${siteName}`;
     
     const description = currentPage > 1
       ? `Browse completed anime - Page ${currentPage}. Watch finished series including ${animeNames}. All episodes available for binge-watching.`
@@ -234,7 +237,7 @@ const CompletedPage = () => {
     return (
       <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
         <Helmet>
-          <title>Loading Completed Anime... | AnimeStream</title>
+          <title>Loading Completed Anime... | {siteName}</title>
           <meta name="robots" content="noindex" />
         </Helmet>
         <Navbar />
@@ -346,7 +349,7 @@ const CompletedPage = () => {
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={description} />
         <meta property="og:image" content={ogImage} />
-        <meta property="og:site_name" content="AnimeStream" />
+        <meta property="og:site_name" content={siteName} />
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content={`${baseUrl}/completed${currentPage > 1 ? `?page=${currentPage}` : ''}`} />
         <meta property="twitter:title" content={pageTitle} />

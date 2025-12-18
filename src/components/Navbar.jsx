@@ -187,8 +187,8 @@ const Navbar = () => {
             {/* Logo/Brand */}
             <Link to="/" className="navbar-brand d-flex align-items-center" style={{ fontSize: '1.5rem', fontWeight: '700', textDecoration: 'none', color: '#fff' }}>
               <Play size={28} className="me-2" style={{ fill: '#e50914', color: '#e50914' }} />
-              <span className="d-none d-lg-inline">Dead</span>
-              <span className="d-none d-lg-inline" style={{ color: '#e50914' }}>Anime</span>
+              <span className="d-none d-lg-inline">ToonVerse</span>
+              <span className="d-none d-lg-inline" style={{ color: '#e50914' }}>Haven</span>
             </Link>
 
             {/* Mobile Search Bar */}

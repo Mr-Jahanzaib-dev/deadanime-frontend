@@ -20,7 +20,7 @@ const MarvelPage = () => {
 
   // SEO Configuration
   const siteUrl = 'https://dead-anime.vercel.app/'; // 🔴 REPLACE WITH YOUR DOMAIN
-  const siteName = 'DeadAnime'; // 🔴 REPLACE WITH YOUR SITE NAME
+  const siteName = 'ToonVerse Haven'; // 🔴 REPLACE WITH YOUR SITE NAME
 
   // Dynamic SEO functions
   const getPageTitle = () => {

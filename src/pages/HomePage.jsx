@@ -87,7 +87,7 @@ const HomePage = () => {
     return {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "AnimeStream - Watch Anime Online Free",
+      "name": `${siteName} - Watch Anime Online Free`,
       "url": baseUrl,
       "description": "Watch the best anime online for free. Stream trending anime series, latest episodes, and top-rated shows in HD quality.",
       "potentialAction": {
@@ -97,7 +97,7 @@ const HomePage = () => {
       },
       "publisher": {
         "@type": "Organization",
-        "name": "AnimeStream",
+        "name": siteName,
         "url": baseUrl
       },
       "mainEntity": {
@@ -128,7 +128,7 @@ const HomePage = () => {
 
   // SEO: Dynamic meta tags based on content
   const generateMetaTags = () => {
-    const siteName = "AnimeStream";
+    const siteName = "ToonVerse Haven";
     const baseUrl = window.location.origin;
     const topAnime = popularAnime.slice(0, 5);
     const animeNames = topAnime.map(a => a.name).join(', ');
@@ -145,7 +145,7 @@ const HomePage = () => {
   if (loading) {
     return (
       <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
-          <title>Loading... | AnimeStream</title>
+          <title>Loading... | {siteName}</title>
           <meta name="robots" content="noindex" />
         <Navbar />
         <div style={{ 
@@ -268,7 +268,7 @@ const HomePage = () => {
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:image" content={featuredAnime.image?.backdrop ? `https://image.tmdb.org/t/p/original${featuredAnime.image.backdrop}` : `${baseUrl}/og-image.jpg`} />
-        <meta property="og:site_name" content="AnimeStream" />
+        <meta property="og:site_name" content={siteName} />
         
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
@@ -281,7 +281,7 @@ const HomePage = () => {
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         <meta name="language" content="English" />
         <meta name="revisit-after" content="1 days" />
-        <meta name="author" content="AnimeStream" />
+        <meta name="author" content={siteName} />
         <link rel="canonical" href={baseUrl} />
         
         {/* Structured Data */}
