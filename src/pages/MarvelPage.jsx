@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Play, Star } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -270,10 +269,6 @@ const MarvelPage = () => {
   if (loading) {
     return (
       <>
-        <Helmet>
-          <title>Loading Marvel Content... | {siteName}</title>
-          <meta name="robots" content="noindex, nofollow" />
-        </Helmet>
         <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
           <Navbar />
           <div style={{ 
@@ -376,85 +371,6 @@ const MarvelPage = () => {
 
   return (
     <>
-      <Helmet>
-        {/* Primary Meta Tags */}
-        <html lang="en" />
-        <title>{getPageTitle()}</title>
-        <meta name="title" content={getPageTitle()} />
-        <meta name="description" content={getPageDescription()} />
-        <meta name="keywords" content={getKeywords()} />
-        <link rel="canonical" href={`${siteUrl}/marvel${currentPage > 1 ? `?page=${currentPage}` : ''}`} />
-        
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${siteUrl}/marvel${currentPage > 1 ? `?page=${currentPage}` : ''}`} />
-        <meta property="og:title" content={getPageTitle()} />
-        <meta property="og:description" content={getPageDescription()} />
-        <meta property="og:image" content={marvelAnime[0]?.image || `${siteUrl}/og-image.jpg`} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content={`${siteName} - Watch Marvel & Superhero Anime Online`} />
-        <meta property="og:site_name" content={siteName} />
-        <meta property="og:locale" content="en_US" />
-
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content={`${siteUrl}/marvel${currentPage > 1 ? `?page=${currentPage}` : ''}`} />
-        <meta name="twitter:title" content={getPageTitle()} />
-        <meta name="twitter:description" content={getPageDescription()} />
-        <meta name="twitter:image" content={marvelAnime[0]?.image || `${siteUrl}/og-image.jpg`} />
-        <meta name="twitter:image:alt" content={`${siteName} - Watch Marvel & Superhero Anime Online`} />
-
-        {/* Search Engine Directives */}
-        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-        <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-        <meta name="bingbot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-        
-        {/* Additional SEO */}
-        <meta name="language" content="English" />
-        <meta name="revisit-after" content="1 day" />
-        <meta name="author" content={siteName} />
-        <meta name="publisher" content={siteName} />
-        <meta name="copyright" content={`© ${new Date().getFullYear()} ${siteName}. All rights reserved.`} />
-        <meta name="category" content="Entertainment" />
-        <meta name="coverage" content="Worldwide" />
-        <meta name="distribution" content="Global" />
-        <meta name="rating" content="General" />
-
-        {/* Mobile Optimization */}
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-        <meta name="theme-color" content="#e50914" />
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content={siteName} />
-
-        {/* Pagination SEO */}
-        {currentPage > 1 && (
-          <link rel="prev" href={`${siteUrl}/marvel?page=${currentPage - 1}`} />
-        )}
-        {currentPage < totalPages && (
-          <link rel="next" href={`${siteUrl}/marvel?page=${currentPage + 1}`} />
-        )}
-        <link rel="first" href={`${siteUrl}/marvel`} />
-        {totalPages > 1 && (
-          <link rel="last" href={`${siteUrl}/marvel?page=${totalPages}`} />
-        )}
-
-        {/* Structured Data */}
-        {marvelAnime.length > 0 && (
-          <script type="application/ld+json">
-            {JSON.stringify(generateStructuredData())}
-          </script>
-        )}
-        <script type="application/ld+json">
-          {JSON.stringify(breadcrumbStructuredData)}
-        </script>
-        <script type="application/ld+json">
-          {JSON.stringify(websiteStructuredData)}
-        </script>
-      </Helmet>
-
       <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
         <Navbar />
 

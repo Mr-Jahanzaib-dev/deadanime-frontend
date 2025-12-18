@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Play, Star } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import AnimeCard from '../components/AnimeCard';
@@ -133,10 +132,6 @@ const OngoingPage = () => {
   if (loading) {
     return (
       <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
-        <Helmet>
-          <title>Loading Ongoing Anime... | {siteName}</title>
-          <meta name="robots" content="noindex" />
-        </Helmet>
         <Navbar />
         <div style={{ 
           display: 'flex', 
@@ -240,43 +235,6 @@ const OngoingPage = () => {
 
   return (
     <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
-      {/* SEO: Comprehensive Meta Tags */}
-      <Helmet>
-        {/* Primary Meta Tags */}
-        <title>{pageTitle}</title>
-        <meta name="title" content={pageTitle} />
-        <meta name="description" content={description} />
-        <meta name="keywords" content={keywords} />
-        
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${baseUrl}/ongoing${currentPage > 1 ? `?page=${currentPage}` : ''}`} />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={description} />
-        <meta property="og:image" content={ogImage} />
-        <meta property="og:site_name" content={siteName} />
-        
-        {/* Twitter */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content={`${baseUrl}/ongoing${currentPage > 1 ? `?page=${currentPage}` : ''}`} />
-        <meta property="twitter:title" content={pageTitle} />
-        <meta property="twitter:description" content={description} />
-        <meta property="twitter:image" content={ogImage} />
-        
-        {/* Additional SEO Tags */}
-        <meta name="robots" content="index, follow, max-image-preview:large" />
-        <link rel="canonical" href={`${baseUrl}/ongoing${currentPage > 1 ? `?page=${currentPage}` : ''}`} />
-        
-        {/* Pagination Tags */}
-        {currentPage > 1 && <link rel="prev" href={`${baseUrl}/ongoing${currentPage > 2 ? `?page=${currentPage - 1}` : ''}`} />}
-        {currentPage < totalPages && <link rel="next" href={`${baseUrl}/ongoing?page=${currentPage + 1}`} />}
-        
-        {/* Structured Data */}
-        <script type="application/ld+json">
-          {JSON.stringify(generateStructuredData())}
-        </script>
-      </Helmet>
-
       <Navbar />
 
       <main>
