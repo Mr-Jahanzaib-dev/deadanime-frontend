@@ -476,6 +476,11 @@ const DownloadPage = () => {
   const [downloadError, setDownloadError] = useState(false);
   const [contentIsMovie, setContentIsMovie] = useState(false);
 
+  // Cache for episodes by season ID
+  const [episodesCache, setEpisodesCache] = useState({});
+  // Cache for download links by episode ID
+  const [downloadLinksCache, setDownloadLinksCache] = useState({});
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -530,7 +535,19 @@ const DownloadPage = () => {
             const firstSeason = allSeasons[0];
             setSelectedSeason(firstSeason);
 
-            const episodeData = await getEpisodes(firstSeason.id);
+            // Check cache first for episodes
+            let episodeData;
+            if (episodesCache[firstSeason.id]) {
+              episodeData = episodesCache[firstSeason.id];
+            } else {
+              episodeData = await getEpisodes(firstSeason.id);
+              // Cache the episodes
+              setEpisodesCache(prev => ({
+                ...prev,
+                [firstSeason.id]: episodeData || []
+              }));
+            }
+            
             setEpisodes(episodeData || []);
 
             const episode = episodeId
@@ -540,8 +557,19 @@ const DownloadPage = () => {
             setCurrentEpisode(episode);
 
             if (episode) {
-              const links = await getEpisodeLinks(episode.id);
-              const downloadableLinks = extractDownloadLinks(links);
+              // Check cache first for download links
+              let downloadableLinks;
+              if (downloadLinksCache[episode.id]) {
+                downloadableLinks = downloadLinksCache[episode.id];
+              } else {
+                const links = await getEpisodeLinks(episode.id);
+                downloadableLinks = extractDownloadLinks(links);
+                // Cache the download links
+                setDownloadLinksCache(prev => ({
+                  ...prev,
+                  [episode.id]: downloadableLinks
+                }));
+              }
               
               if (downloadableLinks.length > 0) {
                 setDownloadLinks(downloadableLinks);
@@ -570,11 +598,27 @@ const DownloadPage = () => {
     setEpisodeLoading(true);
 
     try {
-      const episodeData = await getEpisodes(season.id);
-      setEpisodes(episodeData || []);
+      // Check if episodes are already cached for this season
+      if (episodesCache[season.id]) {
+        setEpisodes(episodesCache[season.id]);
+        if (episodesCache[season.id].length > 0) {
+          await handleEpisodeSelect(episodesCache[season.id][0]);
+        }
+      } else {
+        // Fetch episodes if not cached
+        const episodeData = await getEpisodes(season.id);
+        const episodesArray = episodeData || [];
+        setEpisodes(episodesArray);
+        
+        // Cache the episodes
+        setEpisodesCache(prev => ({
+          ...prev,
+          [season.id]: episodesArray
+        }));
 
-      if (episodeData && episodeData.length > 0) {
-        await handleEpisodeSelect(episodeData[0]);
+        if (episodesArray.length > 0) {
+          await handleEpisodeSelect(episodesArray[0]);
+        }
       }
     } catch (error) {
       console.error("Error fetching episodes:", error);
@@ -590,13 +634,24 @@ const DownloadPage = () => {
     setDownloadLinks([]);
 
     try {
-      const links = await getEpisodeLinks(episode.id);
-      const downloadableLinks = extractDownloadLinks(links);
-      
-      if (downloadableLinks.length > 0) {
-        setDownloadLinks(downloadableLinks);
+      // Check if download links are already cached for this episode
+      if (downloadLinksCache[episode.id]) {
+        setDownloadLinks(downloadLinksCache[episode.id]);
       } else {
-        setDownloadError(true);
+        // Fetch download links if not cached
+        const links = await getEpisodeLinks(episode.id);
+        const downloadableLinks = extractDownloadLinks(links);
+        
+        if (downloadableLinks.length > 0) {
+          setDownloadLinks(downloadableLinks);
+          // Cache the download links
+          setDownloadLinksCache(prev => ({
+            ...prev,
+            [episode.id]: downloadableLinks
+          }));
+        } else {
+          setDownloadError(true);
+        }
       }
 
       navigate(`/download/${slug}/${episode.id}`, { replace: true });
