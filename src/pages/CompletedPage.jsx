@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, Play, Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import AnimeCard from '../components/AnimeCard';
