@@ -15,6 +15,9 @@ const HomePage = () => {
   // Number of top anime to show in banner rotation
   const BANNER_SLIDES = 5;
 
+  // SEO Configuration
+  const siteName = "ToonVerse Haven";
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -128,7 +131,6 @@ const HomePage = () => {
 
   // SEO: Dynamic meta tags based on content
   const generateMetaTags = () => {
-    const siteName = "ToonVerse Haven";
     const baseUrl = window.location.origin;
     const topAnime = popularAnime.slice(0, 5);
     const animeNames = topAnime.map(a => a.name).join(', ');

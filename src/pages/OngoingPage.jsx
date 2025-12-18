@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Play, Star } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import AnimeCard from '../components/AnimeCard';
