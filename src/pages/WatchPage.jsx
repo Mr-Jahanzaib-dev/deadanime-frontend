@@ -377,6 +377,11 @@ const WatchPage = () => {
   const [videoError, setVideoError] = useState(false);
   const [contentIsMovie, setContentIsMovie] = useState(false);
 
+  // Cache for episodes by season ID
+  const [episodesCache, setEpisodesCache] = useState({});
+  // Cache for streaming URLs by episode ID
+  const [streamingUrlCache, setStreamingUrlCache] = useState({});
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -419,8 +424,21 @@ const WatchPage = () => {
             const firstSeason = allSeasons[0];
             setSelectedSeason(firstSeason);
 
-            const episodeData = await getEpisodes(firstSeason.id);
-            setEpisodes(episodeData || []);
+            // Check if episodes are already cached for this season
+            let episodeData;
+            if (episodesCache[firstSeason.id]) {
+              episodeData = episodesCache[firstSeason.id];
+              setEpisodes(episodeData);
+            } else {
+              episodeData = await getEpisodes(firstSeason.id);
+              episodeData = episodeData || [];
+              setEpisodes(episodeData);
+              // Cache the episodes
+              setEpisodesCache(prev => ({
+                ...prev,
+                [firstSeason.id]: episodeData
+              }));
+            }
 
             const episode = episodeId
               ? episodeData.find((ep) => ep.id === parseInt(episodeId))
@@ -429,13 +447,23 @@ const WatchPage = () => {
             setCurrentEpisode(episode);
 
             if (episode) {
-              const links = await getEpisodeLinks(episode.id);
-              const url = extractValidServer(links);
-              
-              if (url) {
-                setStreamingUrl(url);
+              // Check if streaming URL is already cached for this episode
+              if (streamingUrlCache[episode.id]) {
+                setStreamingUrl(streamingUrlCache[episode.id]);
               } else {
-                setVideoError(true);
+                const links = await getEpisodeLinks(episode.id);
+                const url = extractValidServer(links);
+                
+                if (url) {
+                  setStreamingUrl(url);
+                  // Cache the streaming URL
+                  setStreamingUrlCache(prev => ({
+                    ...prev,
+                    [episode.id]: url
+                  }));
+                } else {
+                  setVideoError(true);
+                }
               }
             }
           }
@@ -456,11 +484,27 @@ const WatchPage = () => {
     setLoading(true);
 
     try {
-      const episodeData = await getEpisodes(season.id);
-      setEpisodes(episodeData || []);
+      // Check if episodes are already cached for this season
+      if (episodesCache[season.id]) {
+        setEpisodes(episodesCache[season.id]);
+        if (episodesCache[season.id].length > 0) {
+          handleEpisodeSelect(episodesCache[season.id][0]);
+        }
+      } else {
+        // Fetch episodes if not cached
+        const episodeData = await getEpisodes(season.id);
+        const episodesArray = episodeData || [];
+        setEpisodes(episodesArray);
 
-      if (episodeData && episodeData.length > 0) {
-        handleEpisodeSelect(episodeData[0]);
+        // Cache the episodes
+        setEpisodesCache(prev => ({
+          ...prev,
+          [season.id]: episodesArray
+        }));
+
+        if (episodesArray.length > 0) {
+          handleEpisodeSelect(episodesArray[0]);
+        }
       }
     } catch (error) {
       console.error("Error fetching episodes:", error);
@@ -476,13 +520,24 @@ const WatchPage = () => {
     setVideoError(false);
 
     try {
-      const links = await getEpisodeLinks(episode.id);
-      const url = extractValidServer(links);
-      
-      if (url) {
-        setStreamingUrl(url);
+      // Check if streaming URL is already cached for this episode
+      if (streamingUrlCache[episode.id]) {
+        setStreamingUrl(streamingUrlCache[episode.id]);
       } else {
-        setVideoError(true);
+        // Fetch streaming URL if not cached
+        const links = await getEpisodeLinks(episode.id);
+        const url = extractValidServer(links);
+
+        if (url) {
+          setStreamingUrl(url);
+          // Cache the streaming URL
+          setStreamingUrlCache(prev => ({
+            ...prev,
+            [episode.id]: url
+          }));
+        } else {
+          setVideoError(true);
+        }
       }
 
       navigate(`/watch/${slug}/${episode.id}`, { replace: true });
