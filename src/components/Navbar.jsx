@@ -333,12 +333,12 @@ const Navbar = () => {
                         <Icon size={16} className="me-2 d-inline" />
                         {item.name}
                         {isActive && (
-                          <div style={{
+                          <div className="nav-active-indicator" style={{
                             position: 'absolute',
                             bottom: '-8px',
                             left: '50%',
                             transform: 'translateX(-50%)',
-                            width: '40px',
+                            width: window.innerWidth < 768 ? '20px' : '40px',
                             height: '3px',
                             background: '#e50914',
                             borderRadius: '3px'
@@ -512,6 +512,10 @@ const Navbar = () => {
 
           .nav-link:hover {
             background: rgba(229, 9, 20, 0.1);
+          }
+
+          .nav-active-indicator {
+            width: 20px !important;
           }
         }
 

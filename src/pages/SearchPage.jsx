@@ -625,14 +625,7 @@ const SearchPage = () => {
               </div>
             )}
 
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: window.innerWidth < 768 ? 'column' : 'row',
-              justifyContent: 'space-between', 
-              alignItems: window.innerWidth < 768 ? 'stretch' : 'center',
-              gap: '15px',
-              marginBottom: '30px' 
-            }}>
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-3 mb-4">
               <h2 style={{ 
                 fontSize: 'clamp(1.3rem, 4vw, 1.8rem)', 
                 fontWeight: '600', 

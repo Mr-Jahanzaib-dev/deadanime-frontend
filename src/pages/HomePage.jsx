@@ -159,12 +159,12 @@ const HomePage = () => {
         }}>
           <div style={{ textAlign: 'center' }}>
             {/* Animated Logo/Icon */}
-            <div style={{
+            <div className="loading-spinner-container" style={{
               position: 'relative',
               marginBottom: '30px',
               display: 'inline-block'
             }}>
-              <div style={{
+              <div className="loading-spinner" style={{
                 width: '80px',
                 height: '80px',
                 border: '4px solid rgba(229, 9, 20, 0.2)',
@@ -173,6 +173,7 @@ const HomePage = () => {
                 animation: 'spin 1s linear infinite'
               }} />
               <Play 
+                className="loading-play-icon"
                 size={32} 
                 fill="#e50914" 
                 color="#e50914" 
@@ -187,7 +188,7 @@ const HomePage = () => {
             </div>
 
             {/* Loading Text */}
-            <h2 style={{ 
+            <h2 className="loading-title" style={{ 
               fontSize: '1.8rem', 
               fontWeight: '600',
               marginBottom: '10px',
@@ -246,6 +247,59 @@ const HomePage = () => {
               opacity: 1;
             }
           }
+
+          /* Responsive loading styles */
+          @media (max-width: 767.98px) {
+            .loading-spinner-container {
+              margin-bottom: 20px !important;
+            }
+
+            .loading-spinner {
+              width: 60px !important;
+              height: 60px !important;
+              border-width: 3px !important;
+            }
+
+            .loading-play-icon {
+              width: 24px !important;
+              height: 24px !important;
+            }
+
+            .loading-title {
+              font-size: 1.4rem !important;
+              margin-bottom: 8px !important;
+            }
+          }
+
+          @media (max-width: 575.98px) {
+            .loading-spinner {
+              width: 50px !important;
+              height: 50px !important;
+              border-width: 2px !important;
+            }
+
+            .loading-play-icon {
+              width: 20px !important;
+              height: 20px !important;
+            }
+
+            .loading-title {
+              font-size: 1.2rem !important;
+            }
+          }
+
+          /* Responsive Banner Height */
+          @media (max-width: 767.98px) {
+            .hero-banner {
+              height: 400px !important;
+            }
+          }
+
+          @media (max-width: 575.98px) {
+            .hero-banner {
+              height: 350px !important;
+            }
+          }
         `}</style>
       </div>
     );
@@ -298,6 +352,7 @@ const HomePage = () => {
         {featuredAnime.name && (
           <section 
             aria-label="Featured Anime Carousel"
+            className="hero-banner"
             style={{ 
               marginTop: '80px',
               position: 'relative',
@@ -592,6 +647,19 @@ const HomePage = () => {
           to {
             opacity: 1;
             transform: translateY(0);
+          }
+        }
+
+        /* Responsive Banner Height */
+        @media (max-width: 767.98px) {
+          .hero-banner {
+            height: 400px !important;
+          }
+        }
+
+        @media (max-width: 575.98px) {
+          .hero-banner {
+            height: 350px !important;
           }
         }
       `}</style>

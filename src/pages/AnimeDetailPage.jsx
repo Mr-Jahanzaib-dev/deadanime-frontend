@@ -36,38 +36,72 @@ const AnimationStyles = () => (
       0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
       40% { transform: scale(1); opacity: 1; }
     }
+
+    /* Responsive loading styles */
+    @media (max-width: 767.98px) {
+      .loading-spinner-container {
+        margin-bottom: 20px !important;
+      }
+
+      .loading-spinner {
+        border-width: 3px !important;
+      }
+
+      .loading-play-icon {
+        width: 24px !important;
+        height: 24px !important;
+      }
+    }
+
+    @media (max-width: 575.98px) {
+      .loading-spinner {
+        border-width: 2px !important;
+      }
+
+      .loading-play-icon {
+        width: 20px !important;
+        height: 20px !important;
+      }
+    }
   `}</style>
 );
 
 // ==================== LOADING COMPONENT ====================
-const LoadingSpinner = ({ size = 80 }) => (
-  <div style={{
-    position: 'relative',
-    marginBottom: '30px',
-    display: 'inline-block'
-  }}>
-    <div style={{
-      width: `${size}px`,
-      height: `${size}px`,
-      border: '4px solid rgba(229, 9, 20, 0.2)',
-      borderTop: '4px solid #e50914',
-      borderRadius: '50%',
-      animation: 'spin 1s linear infinite'
-    }} />
-    <Play 
-      size={size * 0.4} 
-      fill="#e50914" 
-      color="#e50914" 
-      style={{
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        animation: 'pulse 2s ease-in-out infinite'
-      }}
-    />
-  </div>
-);
+const LoadingSpinner = ({ size = 80 }) => {
+  // Make size responsive
+  const isMobile = window.innerWidth < 768;
+  const responsiveSize = isMobile ? Math.min(size * 0.75, 60) : size;
+  
+  return (
+    <div className="loading-spinner-container" style={{
+      position: 'relative',
+      marginBottom: '30px',
+      display: 'inline-block'
+    }}>
+      <div className="loading-spinner" style={{
+        width: `${responsiveSize}px`,
+        height: `${responsiveSize}px`,
+        border: '4px solid rgba(229, 9, 20, 0.2)',
+        borderTop: '4px solid #e50914',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite'
+      }} />
+      <Play 
+        className="loading-play-icon"
+        size={responsiveSize * 0.4} 
+        fill="#e50914" 
+        color="#e50914" 
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          animation: 'pulse 2s ease-in-out infinite'
+        }}
+      />
+    </div>
+  );
+};
 
 const LoadingDots = () => (
   <div style={{ 

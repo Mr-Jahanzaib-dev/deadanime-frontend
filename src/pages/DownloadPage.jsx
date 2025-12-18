@@ -738,7 +738,7 @@ const DownloadPage = () => {
       {episodeLoading && <LoadingOverlay message="Loading Episode..." />}
 
       <div style={{ marginTop: "80px", paddingBottom: "40px" }}>
-        <div style={{ padding: "0 15px", maxWidth: "1200px", margin: "0 auto" }}>
+        <div className="container-fluid px-3 px-md-4 px-lg-5" style={{ maxWidth: "1200px" }}>
           
           <button
             onClick={() => navigate(`/anime/${slug}`)}

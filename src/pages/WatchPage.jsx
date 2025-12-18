@@ -68,6 +68,46 @@ const AnimationStyles = () => (
       0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
       40% { transform: scale(1); opacity: 1; }
     }
+
+    /* Responsive loading styles */
+    @media (max-width: 767.98px) {
+      .loading-spinner-container {
+        margin-bottom: 20px !important;
+      }
+
+      .loading-spinner {
+        width: 60px !important;
+        height: 60px !important;
+        border-width: 3px !important;
+      }
+
+      .loading-play-icon {
+        width: 24px !important;
+        height: 24px !important;
+      }
+
+      .loading-title {
+        font-size: 1.4rem !important;
+        margin-bottom: 8px !important;
+      }
+    }
+
+    @media (max-width: 575.98px) {
+      .loading-spinner {
+        width: 50px !important;
+        height: 50px !important;
+        border-width: 2px !important;
+      }
+
+      .loading-play-icon {
+        width: 20px !important;
+        height: 20px !important;
+      }
+
+      .loading-title {
+        font-size: 1.2rem !important;
+      }
+    }
   `}</style>
 );
 
@@ -82,12 +122,12 @@ const LoadingScreen = () => (
       marginTop: "80px",
     }}>
       <div style={{ textAlign: "center" }}>
-        <div style={{
+        <div className="loading-spinner-container" style={{
           position: "relative",
           marginBottom: "30px",
           display: "inline-block",
         }}>
-          <div style={{
+          <div className="loading-spinner" style={{
             width: "80px",
             height: "80px",
             border: "4px solid rgba(229, 9, 20, 0.2)",
@@ -96,6 +136,7 @@ const LoadingScreen = () => (
             animation: "spin 1s linear infinite",
           }} />
           <Play
+            className="loading-play-icon"
             size={32}
             fill="#e50914"
             color="#e50914"
@@ -108,7 +149,7 @@ const LoadingScreen = () => (
             }}
           />
         </div>
-        <h2 style={{
+        <h2 className="loading-title" style={{
           fontSize: "1.8rem",
           fontWeight: "600",
           marginBottom: "10px",
@@ -599,7 +640,7 @@ const WatchPage = () => {
       <Navbar />
 
       <div style={{ marginTop: "80px", paddingBottom: "60px" }}>
-        <div className="container-fluid" style={{ padding: "0 90px", maxWidth: contentIsMovie ? "1400px" : "100%" }}>
+        <div className="container-fluid px-3 px-md-4 px-lg-5" style={{ maxWidth: contentIsMovie ? "1400px" : "100%" }}>
           <div className="row">
             {/* Main Video Player */}
             <div className={contentIsMovie ? "col-12" : "col-lg-9"} style={{ paddingTop: "20px" }}>
