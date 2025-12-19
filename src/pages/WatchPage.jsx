@@ -53,65 +53,9 @@ const extractValidServer = (links) => {
   return null;
 };
 
-// ==================== LOADING COMPONENTS ====================
-const AnimationStyles = () => (
-  <style>{`
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-      50% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.95); }
-    }
-    @keyframes bounce {
-      0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
-      40% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Responsive loading styles */
-    @media (max-width: 767.98px) {
-      .loading-spinner-container {
-        margin-bottom: 20px !important;
-      }
-
-      .loading-spinner {
-        width: 60px !important;
-        height: 60px !important;
-        border-width: 3px !important;
-      }
-
-      .loading-play-icon {
-        width: 24px !important;
-        height: 24px !important;
-      }
-
-      .loading-title {
-        font-size: 1.4rem !important;
-        margin-bottom: 8px !important;
-      }
-    }
-
-    @media (max-width: 575.98px) {
-      .loading-spinner {
-        width: 50px !important;
-        height: 50px !important;
-        border-width: 2px !important;
-      }
-
-      .loading-play-icon {
-        width: 20px !important;
-        height: 20px !important;
-      }
-
-      .loading-title {
-        font-size: 1.2rem !important;
-      }
-    }
-  `}</style>
-);
-
-const LoadingScreen = () => (
+// ==================== LOADING SCREEN ====================
+const LoadingScreen = () => {
+  return (
   <div style={{ background: "#0a0a0a", minHeight: "100vh", color: "#fff" }}>
     <Navbar />
     <div style={{
@@ -121,81 +65,148 @@ const LoadingScreen = () => (
       minHeight: "calc(100vh - 80px)",
       marginTop: "80px",
     }}>
-      <div style={{ textAlign: "center" }}>
-        <div className="loading-spinner-container" style={{
-          position: "relative",
-          marginBottom: "30px",
-          display: "inline-block",
+      <div style={{ textAlign: "center", position: "relative" }}>
+        {/* Outer rotating ring */}
+        <div style={{
+          width: "120px",
+          height: "120px",
+          margin: "0 auto",
+          position: "relative"
         }}>
-          <div className="loading-spinner" style={{
-            width: "80px",
-            height: "80px",
-            border: "4px solid rgba(229, 9, 20, 0.2)",
-            borderTop: "4px solid #e50914",
+          <div style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            border: "4px solid transparent",
+            borderTopColor: "#e50914",
+            borderRightColor: "#e50914",
             borderRadius: "50%",
-            animation: "spin 1s linear infinite",
+            animation: "rotate 1.5s linear infinite"
           }} />
-          <Play
-            className="loading-play-icon"
-            size={32}
-            fill="#e50914"
-            color="#e50914"
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              animation: "pulse 2s ease-in-out infinite",
-            }}
-          />
+          <div style={{
+            position: "absolute",
+            width: "90px",
+            height: "90px",
+            top: "15px",
+            left: "15px",
+            border: "4px solid transparent",
+            borderBottomColor: "#ff6b6b",
+            borderLeftColor: "#ff6b6b",
+            borderRadius: "50%",
+            animation: "rotateReverse 1s linear infinite"
+          }} />
+          <div style={{
+            position: "absolute",
+            width: "60px",
+            height: "60px",
+            top: "30px",
+            left: "30px",
+            border: "3px solid transparent",
+            borderTopColor: "#ff9999",
+            borderRadius: "50%",
+            animation: "rotate 0.8s linear infinite"
+          }} />
+          
+          {/* Center play icon - positioned absolutely within the rings */}
+          <div style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            animation: "pulse 1.5s ease-in-out infinite"
+          }}>
+            <Play size={32} fill="#e50914" color="#e50914" />
+          </div>
         </div>
-        <h2 className="loading-title" style={{
-          fontSize: "1.8rem",
-          fontWeight: "600",
-          marginBottom: "10px",
-          background: "linear-gradient(135deg, #e50914 0%, #ff1744 100%)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          backgroundClip: "text",
+        
+        {/* Loading text with dots animation */}
+        <p style={{ 
+          marginTop: "30px", 
+          color: "#999",
+          fontSize: "1.1rem",
+          fontWeight: "500",
+          letterSpacing: "2px"
         }}>
-          Loading Player...
-        </h2>
-        <p style={{ color: "#999", fontSize: "1rem" }}>
-          Preparing your streaming experience
+          LOADING<span style={{ animation: "dots 1.5s steps(4, end) infinite" }}>...</span>
         </p>
+        
+        {/* Animated bars */}
         <div style={{
           display: "flex",
           gap: "8px",
           justifyContent: "center",
-          marginTop: "20px",
+          marginTop: "20px"
         }}>
-          {[0, 1, 2].map((i) => (
+          {[0, 1, 2, 3, 4].map((i) => (
             <div
               key={i}
               style={{
-                width: "12px",
-                height: "12px",
-                background: "#e50914",
-                borderRadius: "50%",
-                animation: `bounce 1.4s ease-in-out ${i * 0.16}s infinite both`,
+                width: "4px",
+                height: "30px",
+                background: "linear-gradient(to top, #e50914, #ff6b6b)",
+                borderRadius: "2px",
+                animation: `wave 1.2s ease-in-out infinite`,
+                animationDelay: `${i * 0.1}s`
               }}
             />
           ))}
         </div>
       </div>
+      
+      {/* CSS Animations */}
+      <style>{`
+        @keyframes rotate {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes rotateReverse {
+          0% { transform: rotate(360deg); }
+          100% { transform: rotate(0deg); }
+        }
+        
+        @keyframes pulse {
+          0%, 100% { 
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+          }
+          50% { 
+            transform: translate(-50%, -50%) scale(1.2);
+            opacity: 0.8;
+          }
+        }
+        
+        @keyframes dots {
+          0%, 20% { content: '.'; }
+          40% { content: '..'; }
+          60%, 100% { content: '...'; }
+        }
+        
+        @keyframes wave {
+          0%, 100% { 
+            transform: scaleY(0.5);
+            opacity: 0.5;
+          }
+          50% { 
+            transform: scaleY(1);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
-    <AnimationStyles />
   </div>
-);
+  );
+};
 
-// ==================== VIDEO PLAYER COMPONENT ====================
-const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => (
+// ==================== VIDEO PLAYER ====================
+const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
+  return (
   <div style={{
     background: "#000",
-    borderRadius: "12px",
+    borderRadius: "8px",
     overflow: "hidden",
-    marginBottom: "20px",
     position: "relative",
+    marginBottom: "20px",
   }}>
     <div style={{
       position: "relative",
@@ -216,10 +227,7 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => (
           }}
           allowFullScreen
           allow="autoplay; fullscreen; picture-in-picture"
-          onError={() => {
-            console.error("Iframe failed to load");
-            setVideoError(true);
-          }}
+          onError={() => setVideoError(true)}
         />
       ) : (
         <div style={{
@@ -234,168 +242,101 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => (
           background: "#000",
           flexDirection: "column"
         }}>
-          <div style={{ textAlign: "center", color: "#999" }}>
-            {videoError ? (
-              <>
-                <Play size={64} style={{ marginBottom: "20px", opacity: 0.5 }} />
-                <p style={{ fontSize: "1.2rem", marginBottom: "10px" }}>Video not available</p>
-                <p style={{ fontSize: "0.9rem", color: "#666" }}>
-                  The streaming source could not be loaded
-                </p>
-                <button
-                  className="btn btn-danger mt-3"
-                  onClick={() => window.location.reload()}
-                >
-                  Retry
-                </button>
-              </>
-            ) : (
-              <>
-                <div className="spinner-border text-danger" role="status">
-                  <span className="visually-hidden">Loading...</span>
+          {videoError ? (
+            <div style={{ textAlign: "center", color: "#999" }}>
+              <Play size={60} style={{ marginBottom: "15px", opacity: 0.5 }} />
+              <p style={{ fontSize: "1.1rem", marginBottom: "8px" }}>Video not available</p>
+              <p style={{ fontSize: "0.85rem", color: "#666" }}>Unable to load streaming source</p>
+              <button
+                onClick={() => window.location.reload()}
+                style={{
+                  background: "#e50914",
+                  color: "#fff",
+                  border: "none",
+                  padding: "8px 20px",
+                  borderRadius: "4px",
+                  marginTop: "15px",
+                  cursor: "pointer"
+                }}
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <div style={{ textAlign: "center", color: "#999" }}>
+              <div style={{
+                width: "60px",
+                height: "60px",
+                margin: "0 auto 15px",
+                position: "relative"
+              }}>
+                {/* Spinning rings */}
+                <div style={{
+                  position: "absolute",
+                  width: "100%",
+                  height: "100%",
+                  border: "3px solid transparent",
+                  borderTopColor: "#e50914",
+                  borderRightColor: "#e50914",
+                  borderRadius: "50%",
+                  animation: "rotate 1s linear infinite"
+                }} />
+                <div style={{
+                  position: "absolute",
+                  width: "45px",
+                  height: "45px",
+                  top: "7.5px",
+                  left: "7.5px",
+                  border: "3px solid transparent",
+                  borderBottomColor: "#ff6b6b",
+                  borderLeftColor: "#ff6b6b",
+                  borderRadius: "50%",
+                  animation: "rotateReverse 0.8s linear infinite"
+                }} />
+                {/* Center play icon */}
+                <div style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  animation: "pulse 1.5s ease-in-out infinite"
+                }}>
+                  <Play size={20} fill="#e50914" color="#e50914" />
                 </div>
-                <p style={{ marginTop: "20px" }}>Loading video...</p>
-              </>
-            )}
-          </div>
+              </div>
+              <p>Loading video...</p>
+              
+              {/* CSS Animations for video player loading */}
+              <style>{`
+                @keyframes rotate {
+                  0% { transform: rotate(0deg); }
+                  100% { transform: rotate(360deg); }
+                }
+                
+                @keyframes rotateReverse {
+                  0% { transform: rotate(360deg); }
+                  100% { transform: rotate(0deg); }
+                }
+                
+                @keyframes pulse {
+                  0%, 100% { 
+                    transform: translate(-50%, -50%) scale(1);
+                    opacity: 1;
+                  }
+                  50% { 
+                    transform: translate(-50%, -50%) scale(1.2);
+                    opacity: 0.7;
+                  }
+                }
+              `}</style>
+            </div>
+          )}
         </div>
       )}
     </div>
   </div>
-);
-
-// ==================== CONTROL BUTTON COMPONENT ====================
-const ControlButton = ({ onClick, disabled, icon: Icon, text, variant = 'default', className = '' }) => {
-  const variants = {
-    default: {
-      background: "rgba(255,255,255,0.1)",
-      color: "#fff",
-    },
-    primary: {
-      background: "#e50914",
-      color: "#fff",
-    },
-    download: {
-      background: "rgba(34, 197, 94, 0.2)",
-      color: "#22c55e",
-      border: "1px solid #22c55e",
-    }
-  };
-
-  const style = variants[variant] || variants.default;
-
-  return (
-    <button
-      className={`btn px-4 ${className}`}
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        ...style,
-        border: style.border || "none",
-        opacity: disabled ? 0.5 : 1,
-        cursor: disabled ? "not-allowed" : "pointer",
-      }}
-    >
-      {Icon && <Icon size={18} className="me-2" />}
-      {text}
-      {Icon && text && Icon === ChevronRight && <Icon size={18} className="ms-2" />}
-    </button>
   );
 };
-
-// ==================== EPISODE BUTTON COMPONENT ====================
-const EpisodeButton = ({ episode, isActive, onClick }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
-  return (
-    <button
-      className="btn w-100 text-start"
-      onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      style={{
-        background: isActive ? "#e50914" : (isHovered ? "rgba(229, 9, 20, 0.2)" : "rgba(255,255,255,0.1)"),
-        color: "#fff",
-        border: isActive ? "2px solid #ff1744" : "1px solid rgba(255,255,255,0.2)",
-        padding: "12px",
-        transition: "all 0.3s",
-      }}
-    >
-      <div className="fw-bold">EP {episode.number}</div>
-      <small style={{
-        color: isActive ? "#fff" : "#999",
-        fontSize: "0.75rem",
-        display: "block",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-      }}>
-        {episode.name}
-      </small>
-    </button>
-  );
-};
-
-// ==================== SIDEBAR EPISODE LIST ====================
-const SidebarEpisodeList = ({ episodes, currentEpisode, onEpisodeSelect }) => (
-  <div className="p-3" style={{
-    background: "rgba(255,255,255,0.05)",
-    borderRadius: "12px",
-    border: "1px solid rgba(255,255,255,0.1)",
-    maxHeight: "600px",
-    overflowY: "auto",
-  }}>
-    <h6 className="fw-bold mb-3" style={{ color: "#e50914" }}>
-      Episodes ({episodes.length})
-    </h6>
-    <div className="d-flex flex-column gap-2">
-      {episodes.map((episode) => (
-        <button
-          key={episode.id}
-          className="btn text-start"
-          onClick={() => onEpisodeSelect(episode)}
-          style={{
-            background: episode.id === currentEpisode?.id ? "#e50914" : "rgba(255,255,255,0.05)",
-            color: "#fff",
-            border: episode.id === currentEpisode?.id ? "2px solid #ff1744" : "1px solid rgba(255,255,255,0.1)",
-            padding: "12px",
-            transition: "all 0.3s",
-          }}
-          onMouseEnter={(e) => {
-            if (episode.id !== currentEpisode?.id) {
-              e.currentTarget.style.background = "rgba(229, 9, 20, 0.2)";
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (episode.id !== currentEpisode?.id) {
-              e.currentTarget.style.background = "rgba(255,255,255,0.05)";
-            }
-          }}
-        >
-          <div className="d-flex align-items-center">
-            {episode.id === currentEpisode?.id && (
-              <Play size={16} fill="#fff" className="me-2" />
-            )}
-            <div style={{ flex: 1 }}>
-              <div className="fw-bold">Episode {episode.number}</div>
-              <small style={{
-                color: episode.id === currentEpisode?.id ? "#fff" : "#999",
-                fontSize: "0.75rem",
-              }}>
-                {episode.name}
-              </small>
-              {episode.note && (
-                <div>
-                  <small style={{ color: "#ffc107" }}>{episode.note}</small>
-                </div>
-              )}
-            </div>
-          </div>
-        </button>
-      ))}
-    </div>
-  </div>
-);
 
 // ==================== MAIN WATCH PAGE ====================
 const WatchPage = () => {
@@ -409,7 +350,6 @@ const WatchPage = () => {
   const [currentEpisode, setCurrentEpisode] = useState(null);
   const [streamingUrl, setStreamingUrl] = useState("");
   const [loading, setLoading] = useState(true);
-  const [showEpisodeList, setShowEpisodeList] = useState(false);
   const [relatedAnime, setRelatedAnime] = useState([]);
   const [otherAnime, setOtherAnime] = useState([]);
   const [displayedRelatedCount, setDisplayedRelatedCount] = useState(12);
@@ -417,11 +357,19 @@ const WatchPage = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [contentIsMovie, setContentIsMovie] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Cache for episodes by season ID
   const [episodesCache, setEpisodesCache] = useState({});
-  // Cache for streaming URLs by episode ID
   const [streamingUrlCache, setStreamingUrlCache] = useState({});
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -446,7 +394,6 @@ const WatchPage = () => {
           try {
             const movieLinks = await getMovieLinks(slug);
             const url = extractValidServer(movieLinks);
-            
             if (url) {
               setStreamingUrl(url);
             } else {
@@ -462,42 +409,59 @@ const WatchPage = () => {
           setSeasons(allSeasons);
 
           if (allSeasons.length > 0) {
-            const firstSeason = allSeasons[0];
-            setSelectedSeason(firstSeason);
-
-            // Check if episodes are already cached for this season
+            // Only set season and episodes if we're loading for the first time or changing anime
+            let seasonToUse;
             let episodeData;
-            if (episodesCache[firstSeason.id]) {
-              episodeData = episodesCache[firstSeason.id];
-              setEpisodes(episodeData);
+
+            if (episodeId) {
+              // If we have an episodeId, find which season it belongs to
+              let foundSeason = null;
+              for (const season of allSeasons) {
+                const eps = await getEpisodes(season.id);
+                const foundEpisode = eps.find((ep) => ep.id === parseInt(episodeId));
+                if (foundEpisode) {
+                  foundSeason = season;
+                  episodeData = eps;
+                  break;
+                }
+              }
+              seasonToUse = foundSeason || allSeasons[0];
             } else {
-              episodeData = await getEpisodes(firstSeason.id);
-              episodeData = episodeData || [];
-              setEpisodes(episodeData);
-              // Cache the episodes
-              setEpisodesCache(prev => ({
-                ...prev,
-                [firstSeason.id]: episodeData
-              }));
+              // No episodeId, use first season
+              seasonToUse = allSeasons[0];
             }
+
+            setSelectedSeason(seasonToUse);
+
+            if (!episodeData) {
+              if (episodesCache[seasonToUse.id]) {
+                episodeData = episodesCache[seasonToUse.id];
+              } else {
+                episodeData = await getEpisodes(seasonToUse.id);
+                episodeData = episodeData || [];
+                setEpisodesCache(prev => ({
+                  ...prev,
+                  [seasonToUse.id]: episodeData
+                }));
+              }
+            }
+
+            setEpisodes(episodeData);
 
             const episode = episodeId
               ? episodeData.find((ep) => ep.id === parseInt(episodeId))
               : episodeData[0];
 
-            setCurrentEpisode(episode);
-
             if (episode) {
-              // Check if streaming URL is already cached for this episode
+              setCurrentEpisode(episode);
+
               if (streamingUrlCache[episode.id]) {
                 setStreamingUrl(streamingUrlCache[episode.id]);
               } else {
                 const links = await getEpisodeLinks(episode.id);
                 const url = extractValidServer(links);
-                
                 if (url) {
                   setStreamingUrl(url);
-                  // Cache the streaming URL
                   setStreamingUrlCache(prev => ({
                     ...prev,
                     [episode.id]: url
@@ -525,24 +489,19 @@ const WatchPage = () => {
     setLoading(true);
 
     try {
-      // Check if episodes are already cached for this season
       if (episodesCache[season.id]) {
         setEpisodes(episodesCache[season.id]);
         if (episodesCache[season.id].length > 0) {
           handleEpisodeSelect(episodesCache[season.id][0]);
         }
       } else {
-        // Fetch episodes if not cached
         const episodeData = await getEpisodes(season.id);
         const episodesArray = episodeData || [];
         setEpisodes(episodesArray);
-
-        // Cache the episodes
         setEpisodesCache(prev => ({
           ...prev,
           [season.id]: episodesArray
         }));
-
         if (episodesArray.length > 0) {
           handleEpisodeSelect(episodesArray[0]);
         }
@@ -556,22 +515,17 @@ const WatchPage = () => {
 
   const handleEpisodeSelect = async (episode) => {
     setCurrentEpisode(episode);
-    setShowEpisodeList(false);
     setLoading(true);
     setVideoError(false);
 
     try {
-      // Check if streaming URL is already cached for this episode
       if (streamingUrlCache[episode.id]) {
         setStreamingUrl(streamingUrlCache[episode.id]);
       } else {
-        // Fetch streaming URL if not cached
         const links = await getEpisodeLinks(episode.id);
         const url = extractValidServer(links);
-
         if (url) {
           setStreamingUrl(url);
-          // Cache the streaming URL
           setStreamingUrlCache(prev => ({
             ...prev,
             [episode.id]: url
@@ -580,7 +534,6 @@ const WatchPage = () => {
           setVideoError(true);
         }
       }
-
       navigate(`/watch/${slug}/${episode.id}`, { replace: true });
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
@@ -639,198 +592,585 @@ const WatchPage = () => {
     <div style={{ background: "#0a0a0a", minHeight: "100vh", color: "#fff" }}>
       <Navbar />
 
-      <div style={{ marginTop: "80px", paddingBottom: "60px" }}>
-        <div className="container-fluid px-3 px-md-4 px-lg-5" style={{ maxWidth: contentIsMovie ? "1400px" : "100%" }}>
-          <div className="row">
-            {/* Main Video Player */}
-            <div className={contentIsMovie ? "col-12" : "col-lg-9"} style={{ paddingTop: "20px" }}>
+      <div style={{ marginTop: isMobile ? "0" : "70px", paddingBottom: isMobile ? "0" : "40px" }}>
+        {/* MOBILE VIEW */}
+        {isMobile ? (
+          <div style={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column" }}>
+            {/* Video Player - Full Width Mobile */}
+            <div style={{ width: "100%", background: "#000", marginTop: "60px" }}>
               <VideoPlayer
                 streamingUrl={streamingUrl}
                 videoError={videoError}
                 isMovie={contentIsMovie}
                 setVideoError={setVideoError}
               />
+            </div>
 
-              {/* Content Info & Controls */}
-              <div className="p-4" style={{
-                background: "rgba(255,255,255,0.05)",
-                borderRadius: "12px",
-                border: "1px solid rgba(255,255,255,0.1)",
-                marginBottom: "20px",
+            {/* Player Controls - Mobile */}
+            <div style={{
+              background: "#141414",
+              padding: "15px",
+              borderBottom: "1px solid rgba(255,255,255,0.1)"
+            }}>
+              <div style={{
+                display: "flex",
+                justifyContent: "space-around",
+                alignItems: "center",
+                gap: "10px"
               }}>
-                <div className="d-flex align-items-start justify-content-between mb-3">
-                  <div>
-                    <h3 className="fw-bold mb-2">
-                      {contentIsMovie && <Film size={24} className="me-2" style={{ display: "inline", marginBottom: "4px" }} />}
-                      {animeData?.name}
-                    </h3>
-                    <h5 style={{ color: "#ccc" }}>
-                      {contentIsMovie ? (
-                        <span className="badge bg-info">Movie</span>
-                      ) : (
-                        <>
-                          {selectedSeason && `Season ${selectedSeason.num} - `}
-                          Episode {currentEpisode?.number}: {currentEpisode?.name}
-                        </>
-                      )}
-                    </h5>
-                  </div>
-                </div>
-
-                {/* Navigation Controls */}
-                <div className="d-flex gap-3 mt-4 flex-wrap">
-                  {!contentIsMovie && (
-                    <>
-                      <ControlButton
-                        onClick={handlePreviousEpisode}
-                        disabled={episodes.findIndex((ep) => ep.id === currentEpisode?.id) === 0}
-                        icon={ChevronLeft}
-                        text="Previous"
-                      />
-
-                      <ControlButton
-                        onClick={() => setShowEpisodeList(!showEpisodeList)}
-                        icon={List}
-                        text="Episodes"
-                        variant="primary"
-                      />
-
-                      <ControlButton
-                        onClick={handleNextEpisode}
-                        disabled={episodes.findIndex((ep) => ep.id === currentEpisode?.id) === episodes.length - 1}
-                        icon={ChevronRight}
-                        text="Next"
-                      />
-                    </>
-                  )}
-
-                  <ControlButton
-                    onClick={handleDownloadClick}
-                    icon={Download}
-                    text="Download"
-                    variant="download"
-                    className="ms-auto"
-                  />
-
-                  <ControlButton
-                    onClick={() => {}}
-                    icon={Share2}
-                    text="Share"
-                  />
-                </div>
-
-                {/* Episode List Dropdown - Only for Series */}
-                {!contentIsMovie && showEpisodeList && (
-                  <div className="mt-4 p-3" style={{
-                    background: "rgba(0,0,0,0.5)",
-                    borderRadius: "10px",
-                    maxHeight: "400px",
-                    overflowY: "auto",
+                <button
+                  onClick={() => window.location.reload()}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#fff",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "5px",
+                    cursor: "pointer",
+                    fontSize: "0.75rem"
+                  }}
+                >
+                  <div style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    border: "2px solid rgba(255,255,255,0.3)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
                   }}>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                      <h6 className="fw-bold mb-0">Select Episode</h6>
-                      <button
-                        className="btn btn-sm"
-                        onClick={() => setShowEpisodeList(false)}
-                        style={{ background: "transparent", border: "none", color: "#fff" }}
-                      >
-                        <X size={20} />
-                      </button>
-                    </div>
-                    <div className="row g-2">
-                      {episodes.map((episode) => (
-                        <div key={episode.id} className="col-md-4 col-sm-6">
-                          <EpisodeButton
-                            episode={episode}
-                            isActive={episode.id === currentEpisode?.id}
-                            onClick={() => handleEpisodeSelect(episode)}
-                          />
-                        </div>
-                      ))}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                    </svg>
+                  </div>
+                  <span>Refresh</span>
+                </button>
+
+                <button
+                  onClick={handleDownloadClick}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#22c55e",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "5px",
+                    cursor: "pointer",
+                    fontSize: "0.75rem",
+                    position: "relative"
+                  }}
+                >
+                  <div style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    border: "2px solid #22c55e",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative"
+                  }}>
+                    <Download size={20} />
+                    <div style={{
+                      position: "absolute",
+                      top: "-5px",
+                      right: "-5px",
+                      background: "#22c55e",
+                      color: "#000",
+                      fontSize: "0.65rem",
+                      fontWeight: "700",
+                      padding: "2px 5px",
+                      borderRadius: "10px"
+                    }}>
+                      APP
                     </div>
                   </div>
-                )}
-              </div>
+                  <span>Download</span>
+                </button>
 
-              {/* Description */}
-              <div className="p-4 mb-4" style={{
-                background: "rgba(255,255,255,0.05)",
-                borderRadius: "12px",
-                border: "1px solid rgba(255,255,255,0.1)",
-              }}>
-                <h5 className="fw-bold mb-3">About this {contentIsMovie ? 'movie' : 'anime'}</h5>
-                <p style={{ color: "#ccc", lineHeight: "1.8" }}>
-                  {animeData?.overview || "No description available."}
-                </p>
+                <button
+                  onClick={handlePreviousEpisode}
+                  disabled={contentIsMovie || episodes.findIndex((ep) => ep.id === currentEpisode?.id) === 0}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#fff",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "5px",
+                    cursor: "pointer",
+                    fontSize: "0.75rem",
+                    opacity: (contentIsMovie || episodes.findIndex((ep) => ep.id === currentEpisode?.id) === 0) ? 0.3 : 1
+                  }}
+                >
+                  <div style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    border: "2px solid rgba(255,255,255,0.3)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}>
+                    <ChevronLeft size={20} />
+                  </div>
+                  <span>Pre</span>
+                </button>
+
+                <button
+                  onClick={handleNextEpisode}
+                  disabled={contentIsMovie || episodes.findIndex((ep) => ep.id === currentEpisode?.id) === episodes.length - 1}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "#fff",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "5px",
+                    cursor: "pointer",
+                    fontSize: "0.75rem",
+                    opacity: (contentIsMovie || episodes.findIndex((ep) => ep.id === currentEpisode?.id) === episodes.length - 1) ? 0.3 : 1
+                  }}
+                >
+                  <div style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    border: "2px solid rgba(255,255,255,0.3)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}>
+                    <ChevronRight size={20} />
+                  </div>
+                  <span>Next</span>
+                </button>
               </div>
             </div>
 
-            {/* Sidebar - Only for Series */}
-            {!contentIsMovie && (
-              <div className="col-lg-3" style={{ paddingTop: "20px" }}>
-                {seasons.length > 1 && (
-                  <div className="mb-3 p-3" style={{
-                    background: "rgba(255,255,255,0.05)",
-                    borderRadius: "12px",
-                    border: "1px solid rgba(255,255,255,0.1)",
+            {/* Content Info - Mobile */}
+            <div style={{ flex: 1, overflowY: "auto", background: "#0a0a0a" }}>
+              <div style={{ padding: "20px" }}>
+                {/* Title */}
+                <div style={{ marginBottom: "15px" }}>
+                  <h1 style={{ 
+                    fontSize: "1.3rem", 
+                    fontWeight: "600", 
+                    marginBottom: "8px",
+                    color: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px"
                   }}>
-                    <h6 className="fw-bold mb-3" style={{ color: "#e50914" }}>Seasons</h6>
-                    <div className="d-flex flex-column gap-2">
-                      {seasons.map((season) => (
+                    {animeData?.name}
+                    <ChevronRight size={20} style={{ color: "#666" }} />
+                  </h1>
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    fontSize: "0.85rem",
+                    color: "#999",
+                    flexWrap: "wrap"
+                  }}>
+                    <span style={{
+                      background: "rgba(255,255,255,0.1)",
+                      padding: "2px 8px",
+                      borderRadius: "3px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}>
+                      <Play size={12} fill="#fff" />
+                      8.6
+                    </span>
+                    <span>2016</span>
+                    <span>|</span>
+                    <span>United States</span>
+                    <span>|</span>
+                    <span>1 subtitles</span>
+                  </div>
+                </div>
+
+                {/* Resources Section - Mobile */}
+                <div style={{
+                  background: "rgba(255,255,255,0.05)",
+                  borderRadius: "8px",
+                  padding: "15px",
+                  marginBottom: "20px"
+                }}>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "15px"
+                  }}>
+                    <div>
+                      <h3 style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "5px", color: "#fff" }}>
+                        Resources
+                      </h3>
+                      <p style={{ fontSize: "0.75rem", color: "#999", margin: 0 }}>
+                        Source: vegamovies.pet | By Mbale...
+                      </p>
+                    </div>
+                    {!contentIsMovie && seasons.length > 1 && (
+                      <select
+                        value={selectedSeason?.id || ''}
+                        onChange={(e) => {
+                          const season = seasons.find(s => s.id === parseInt(e.target.value));
+                          if (season) handleSeasonChange(season);
+                        }}
+                        style={{
+                          background: "rgba(255,255,255,0.1)",
+                          color: "#fff",
+                          border: "1px solid rgba(255,255,255,0.2)",
+                          padding: "8px 12px",
+                          borderRadius: "6px",
+                          fontSize: "0.85rem",
+                          cursor: "pointer"
+                        }}
+                      >
+                        {seasons.map((season) => (
+                          <option key={season.id} value={season.id}>
+                            Season {String(season.num).padStart(2, '0')}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Episodes Grid - Mobile */}
+                  {!contentIsMovie && (
+                    <div style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(4, 1fr)",
+                      gap: "10px"
+                    }}>
+                      {episodes.slice(0, 8).map((episode) => (
                         <button
-                          key={season.id}
-                          className="btn text-start"
-                          onClick={() => handleSeasonChange(season)}
+                          key={episode.id}
+                          onClick={() => handleEpisodeSelect(episode)}
                           style={{
-                            background: selectedSeason?.id === season.id ? "#e50914" : "rgba(255,255,255,0.1)",
-                            color: "#fff",
+                            background: episode.id === currentEpisode?.id ? "#22c55e" : "rgba(255,255,255,0.15)",
+                            color: episode.id === currentEpisode?.id ? "#000" : "#fff",
                             border: "none",
-                            fontWeight: selectedSeason?.id === season.id ? "600" : "400",
+                            padding: "15px 10px",
+                            borderRadius: "8px",
+                            fontSize: "0.9rem",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            transition: "all 0.2s"
                           }}
                         >
-                          Season {season.num}
+                          {String(episode.number).padStart(2, '0')}
                         </button>
                       ))}
                     </div>
-                  </div>
-                )}
+                  )}
 
-                <SidebarEpisodeList
-                  episodes={episodes}
-                  currentEpisode={currentEpisode}
-                  onEpisodeSelect={handleEpisodeSelect}
-                />
-              </div>
-            )}
-          </div>
+                  {contentIsMovie && (
+                    <div style={{
+                      textAlign: "center",
+                      padding: "20px",
+                      color: "#999"
+                    }}>
+                      <Film size={40} style={{ marginBottom: "10px", opacity: 0.5 }} />
+                      <p style={{ fontSize: "0.9rem", margin: 0 }}>Full Movie Available</p>
+                    </div>
+                  )}
+                </div>
 
-          {/* Related/Recommended Content Section */}
-          <div className="row mt-5">
-            <div className="col-12">
-              <div className="p-4" style={{
-                background: "rgba(255,255,255,0.05)",
-                borderRadius: "12px",
-                border: "1px solid rgba(255,255,255,0.1)",
-              }}>
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <div>
-                    <h4 className="fw-bold mb-1" style={{ color: "#e50914" }}>
-                      More {contentIsMovie ? 'Movies' : 'Anime'} To Watch
-                    </h4>
-                    <p style={{ color: "#999", fontSize: "0.9rem", margin: 0 }}>
-                      {displayedOtherCount > 0
-                        ? "Discover more amazing shows"
-                        : `Similar ${contentIsMovie ? 'movies' : 'anime'} you might enjoy`}
-                    </p>
-                  </div>
-                  <span style={{
-                    color: "#666",
-                    fontSize: "0.9rem",
-                    background: "rgba(255,255,255,0.05)",
-                    padding: "8px 16px",
-                    borderRadius: "20px",
+                {/* Overview - Mobile */}
+                <div style={{
+                  background: "rgba(255,255,255,0.05)",
+                  borderRadius: "8px",
+                  padding: "15px",
+                  marginBottom: "20px"
+                }}>
+                  <h3 style={{ fontSize: "1rem", fontWeight: "600", marginBottom: "10px", color: "#fff" }}>
+                    Overview
+                  </h3>
+                  <p style={{ color: "#ccc", lineHeight: "1.6", fontSize: "0.85rem", margin: 0 }}>
+                    {animeData?.overview || "No description available."}
+                  </p>
+                </div>
+
+                {/* Related Content - Mobile */}
+                <div>
+                  <h3 style={{ fontSize: "1rem", fontWeight: "600", marginBottom: "15px", color: "#e50914" }}>
+                    More To Watch
+                  </h3>
+                  <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gap: "10px"
                   }}>
-                    Showing {totalDisplayed} of {totalAvailable}
+                    {relatedAnime.slice(0, 6).map((anime) => (
+                      <div
+                        key={anime.id}
+                        onClick={() => navigate(`/anime/${anime.slug}`)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <AnimeCard anime={anime} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* DESKTOP VIEW */
+          <div style={{ maxWidth: "1600px", margin: "0 auto", padding: "0 20px" }}>
+            {/* Video Player and Episodes Container */}
+            <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+              {/* Main Content - Left Side */}
+              <div style={{ flex: "1 1 800px", minWidth: 0 }}>
+                {/* Video Player */}
+                <VideoPlayer
+                  streamingUrl={streamingUrl}
+                  videoError={videoError}
+                  isMovie={contentIsMovie}
+                  setVideoError={setVideoError}
+                />
+
+                {/* Title and Source Info */}
+                <div style={{ marginBottom: "15px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                    <h1 style={{ fontSize: "1.4rem", fontWeight: "600", margin: 0, color: "#fff" }}>
+                      {animeData?.name}
+                    </h1>
+                    <button
+                      onClick={handleDownloadClick}
+                      style={{
+                        background: "rgba(34, 197, 94, 0.15)",
+                        color: "#22c55e",
+                        border: "1px solid rgba(34, 197, 94, 0.4)",
+                        padding: "6px 16px",
+                        borderRadius: "4px",
+                        fontSize: "0.85rem",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        fontWeight: "500"
+                      }}
+                    >
+                      <Download size={16} />
+                      Download
+                    </button>
+                  </div>
+                  <p style={{ fontSize: "0.85rem", color: "#999", margin: 0 }}>
+                    Source: vegamovies.pet | By Mbalenhle Mavimbela
+                  </p>
+                </div>
+
+                {/* Overview Section */}
+                <div style={{
+                  background: "rgba(255,255,255,0.05)",
+                  borderRadius: "6px",
+                  padding: "20px",
+                  marginBottom: "20px"
+                }}>
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "12px", color: "#fff" }}>
+                    Overview
+                  </h3>
+                  <p style={{ color: "#ccc", lineHeight: "1.7", fontSize: "0.9rem", margin: 0 }}>
+                    {animeData?.overview || "No description available."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right Sidebar - Resources */}
+              <div style={{ flex: "0 0 320px", minWidth: "280px" }}>
+                <div style={{
+                  background: "rgba(255,255,255,0.05)",
+                  borderRadius: "6px",
+                  padding: "15px",
+                  position: "sticky",
+                  top: "90px"
+                }}>
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "15px", color: "#fff" }}>
+                    Resources
+                  </h3>
+
+                  {/* Season Tabs - Only for Series */}
+                  {!contentIsMovie && seasons.length > 1 && (
+                    <div style={{ marginBottom: "15px" }}>
+                      <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fill, minmax(60px, 1fr))",
+                        gap: "8px"
+                      }}>
+                        {seasons.map((season) => (
+                          <button
+                            key={season.id}
+                            onClick={() => handleSeasonChange(season)}
+                            style={{
+                              background: selectedSeason?.id === season.id ? "rgba(229, 9, 20, 0.2)" : "rgba(255,255,255,0.1)",
+                              color: selectedSeason?.id === season.id ? "#e50914" : "#999",
+                              border: selectedSeason?.id === season.id ? "1px solid #e50914" : "1px solid rgba(255,255,255,0.2)",
+                              padding: "8px",
+                              borderRadius: "4px",
+                              fontSize: "0.85rem",
+                              fontWeight: "500",
+                              cursor: "pointer",
+                              transition: "all 0.2s"
+                            }}
+                          >
+                            S{String(season.num).padStart(2, '0')}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Episodes Grid - Only for Series */}
+                  {!contentIsMovie && (
+                    <div>
+                      <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(4, 1fr)",
+                        gap: "8px",
+                        maxHeight: "600px",
+                        overflowY: "auto",
+                        padding: "5px"
+                      }}>
+                        {episodes.map((episode) => (
+                          <button
+                            key={episode.id}
+                            onClick={() => handleEpisodeSelect(episode)}
+                            style={{
+                              background: episode.id === currentEpisode?.id ? "#22c55e" : "rgba(255,255,255,0.1)",
+                              color: episode.id === currentEpisode?.id ? "#000" : "#999",
+                              border: "1px solid rgba(255,255,255,0.2)",
+                              padding: "10px 8px",
+                              borderRadius: "4px",
+                              fontSize: "0.85rem",
+                              fontWeight: episode.id === currentEpisode?.id ? "600" : "500",
+                              cursor: "pointer",
+                              transition: "all 0.2s",
+                              position: "relative"
+                            }}
+                            title={`Episode ${episode.number}: ${episode.name}`}
+                          >
+                            {episode.id === currentEpisode?.id && (
+                              <div style={{
+                                position: "absolute",
+                                top: "3px",
+                                left: "50%",
+                                transform: "translateX(-50%)",
+                                width: "4px",
+                                height: "4px",
+                                background: "#000",
+                                borderRadius: "50%"
+                              }} />
+                            )}
+                            {String(episode.number).padStart(2, '0')}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Navigation Arrows */}
+                      <div style={{
+                        display: "flex",
+                        gap: "10px",
+                        marginTop: "15px"
+                      }}>
+                        <button
+                          onClick={handlePreviousEpisode}
+                          disabled={episodes.findIndex((ep) => ep.id === currentEpisode?.id) === 0}
+                          style={{
+                            flex: 1,
+                            background: "rgba(255,255,255,0.1)",
+                            color: "#fff",
+                            border: "1px solid rgba(255,255,255,0.2)",
+                            padding: "8px",
+                            borderRadius: "4px",
+                            fontSize: "0.85rem",
+                            cursor: "pointer",
+                            opacity: episodes.findIndex((ep) => ep.id === currentEpisode?.id) === 0 ? 0.4 : 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "5px"
+                          }}
+                        >
+                          <ChevronLeft size={16} />
+                        </button>
+                        <button
+                          onClick={handleNextEpisode}
+                          disabled={episodes.findIndex((ep) => ep.id === currentEpisode?.id) === episodes.length - 1}
+                          style={{
+                            flex: 1,
+                            background: "rgba(255,255,255,0.1)",
+                            color: "#fff",
+                            border: "1px solid rgba(255,255,255,0.2)",
+                            padding: "8px",
+                            borderRadius: "4px",
+                            fontSize: "0.85rem",
+                            cursor: "pointer",
+                            opacity: episodes.findIndex((ep) => ep.id === currentEpisode?.id) === episodes.length - 1 ? 0.4 : 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "5px"
+                          }}
+                        >
+                          <ChevronRight size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Movie Badge */}
+                  {contentIsMovie && (
+                    <div style={{
+                      background: "rgba(229, 9, 20, 0.15)",
+                      border: "1px solid rgba(229, 9, 20, 0.3)",
+                      borderRadius: "4px",
+                      padding: "30px 20px",
+                      textAlign: "center"
+                    }}>
+                      <Film size={40} style={{ color: "#e50914", marginBottom: "10px" }} />
+                      <p style={{ fontSize: "0.9rem", color: "#999", margin: 0 }}>
+                        Full Movie Available
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Related Content */}
+            <div style={{ marginTop: "40px" }}>
+              <div style={{
+                background: "rgba(255,255,255,0.05)",
+                borderRadius: "6px",
+                padding: "20px"
+              }}>
+                <div style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "20px"
+                }}>
+                  <h3 style={{ fontSize: "1.2rem", fontWeight: "600", margin: 0, color: "#e50914" }}>
+                    More {contentIsMovie ? 'Movies' : 'Anime'} To Watch
+                  </h3>
+                  <span style={{
+                    fontSize: "0.8rem",
+                    color: "#666",
+                    background: "rgba(255,255,255,0.05)",
+                    padding: "5px 12px",
+                    borderRadius: "15px"
+                  }}>
+                    {totalDisplayed} / {totalAvailable}
                   </span>
                 </div>
 
@@ -860,38 +1200,37 @@ const WatchPage = () => {
                 </div>
 
                 {hasMoreToShow && (
-                  <div className="text-center mt-4">
+                  <div style={{ textAlign: "center", marginTop: "25px" }}>
                     <button
-                      className="btn px-5 py-3"
                       onClick={handleShowMoreAnime}
                       disabled={loadingMore}
                       style={{
-                        background: loadingMore
-                          ? "rgba(229, 9, 20, 0.5)"
-                          : "linear-gradient(135deg, #e50914 0%, #ff1744 100%)",
+                        background: loadingMore ? "rgba(229, 9, 20, 0.5)" : "#e50914",
                         color: "#fff",
                         border: "none",
-                        borderRadius: "30px",
-                        fontSize: "1rem",
-                        fontWeight: "600",
-                        transition: "all 0.3s",
-                        boxShadow: "0 4px 15px rgba(229, 9, 20, 0.3)",
+                        padding: "10px 35px",
+                        borderRadius: "4px",
+                        fontSize: "0.9rem",
+                        fontWeight: "500",
                         cursor: loadingMore ? "not-allowed" : "pointer",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px"
                       }}
                     >
                       {loadingMore ? (
                         <>
-                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                          <span className="spinner-border spinner-border-sm" role="status"></span>
                           Loading...
                         </>
                       ) : (
                         <>
-                          Show More {contentIsMovie ? 'Movies' : 'Anime'}
-                          <ChevronDown size={20} className="ms-2" />
+                          Show More
+                          <ChevronDown size={16} />
                         </>
                       )}
                     </button>
-                    <p style={{ color: "#666", fontSize: "0.85rem", marginTop: "15px" }}>
+                    <p style={{ color: "#666", fontSize: "0.8rem", marginTop: "10px" }}>
                       {totalAvailable - totalDisplayed} more available
                     </p>
                   </div>
@@ -899,7 +1238,7 @@ const WatchPage = () => {
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       <Footer />
