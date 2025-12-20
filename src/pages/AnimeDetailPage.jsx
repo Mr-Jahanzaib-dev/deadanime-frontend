@@ -36,58 +36,29 @@ const AnimationStyles = () => (
       0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
       40% { transform: scale(1); opacity: 1; }
     }
-
-    /* Responsive loading styles */
-    @media (max-width: 767.98px) {
-      .loading-spinner-container {
-        margin-bottom: 20px !important;
-      }
-
-      .loading-spinner {
-        border-width: 3px !important;
-      }
-
-      .loading-play-icon {
-        width: 24px !important;
-        height: 24px !important;
-      }
-    }
-
-    @media (max-width: 575.98px) {
-      .loading-spinner {
-        border-width: 2px !important;
-      }
-
-      .loading-play-icon {
-        width: 20px !important;
-        height: 20px !important;
-      }
-    }
   `}</style>
 );
 
 // ==================== LOADING COMPONENT ====================
 const LoadingSpinner = ({ size = 80 }) => {
-  // Make size responsive
   const isMobile = window.innerWidth < 768;
   const responsiveSize = isMobile ? Math.min(size * 0.75, 60) : size;
   
   return (
-    <div className="loading-spinner-container" style={{
+    <div style={{
       position: 'relative',
-      marginBottom: '30px',
+      marginBottom: isMobile ? '20px' : '30px',
       display: 'inline-block'
     }}>
-      <div className="loading-spinner" style={{
+      <div style={{
         width: `${responsiveSize}px`,
         height: `${responsiveSize}px`,
-        border: '4px solid rgba(229, 9, 20, 0.2)',
-        borderTop: '4px solid #e50914',
+        border: `${isMobile ? '3px' : '4px'} solid rgba(229, 9, 20, 0.2)`,
+        borderTop: `${isMobile ? '3px' : '4px'} solid #e50914`,
         borderRadius: '50%',
         animation: 'spin 1s linear infinite'
       }} />
       <Play 
-        className="loading-play-icon"
         size={responsiveSize * 0.4} 
         fill="#e50914" 
         color="#e50914" 
@@ -103,65 +74,72 @@ const LoadingSpinner = ({ size = 80 }) => {
   );
 };
 
-const LoadingDots = () => (
-  <div style={{ 
-    display: 'flex', 
-    gap: '8px', 
-    justifyContent: 'center', 
-    marginTop: '20px' 
-  }}>
-    {[0, 1, 2].map((i) => (
-      <div
-        key={i}
-        style={{
-          width: '12px',
-          height: '12px',
-          background: '#e50914',
-          borderRadius: '50%',
-          animation: `bounce 1.4s ease-in-out ${i * 0.16}s infinite both`
-        }}
-      />
-    ))}
-  </div>
-);
-
-const LoadingScreen = () => (
-  <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
-    <Navbar />
+const LoadingDots = () => {
+  const isMobile = window.innerWidth < 768;
+  return (
     <div style={{ 
       display: 'flex', 
-      alignItems: 'center', 
+      gap: '8px', 
       justifyContent: 'center', 
-      minHeight: 'calc(100vh - 80px)',
-      marginTop: '80px'
+      marginTop: '20px' 
     }}>
-      <div style={{ textAlign: 'center' }}>
-        <LoadingSpinner />
-        <h2 style={{ 
-          fontSize: '1.8rem', 
-          fontWeight: '600',
-          marginBottom: '10px',
-          background: 'linear-gradient(135deg, #e50914 0%, #ff1744 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text'
-        }}>
-          Loading Anime Details...
-        </h2>
-        <p style={{ color: '#999', fontSize: '1rem' }}>
-          Fetching information about this anime
-        </p>
-        <LoadingDots />
-      </div>
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          style={{
+            width: isMobile ? '10px' : '12px',
+            height: isMobile ? '10px' : '12px',
+            background: '#e50914',
+            borderRadius: '50%',
+            animation: `bounce 1.4s ease-in-out ${i * 0.16}s infinite both`
+          }}
+        />
+      ))}
     </div>
-    <AnimationStyles />
-  </div>
-);
+  );
+};
+
+const LoadingScreen = () => {
+  const isMobile = window.innerWidth < 768;
+  return (
+    <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
+      <Navbar />
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: 'calc(100vh - 80px)',
+        marginTop: isMobile ? '60px' : '80px',
+        padding: '20px'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <LoadingSpinner />
+          <h2 style={{ 
+            fontSize: isMobile ? '1.3rem' : '1.8rem',
+            fontWeight: '600',
+            marginBottom: '10px',
+            background: 'linear-gradient(135deg, #e50914 0%, #ff1744 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text'
+          }}>
+            Loading Anime Details...
+          </h2>
+          <p style={{ color: '#999', fontSize: isMobile ? '0.9rem' : '1rem' }}>
+            Fetching information about this anime
+          </p>
+          <LoadingDots />
+        </div>
+      </div>
+      <AnimationStyles />
+    </div>
+  );
+};
 
 // ==================== BUTTON COMPONENTS ====================
-const GradientButton = ({ onClick, icon: Icon, text, gradient, className = '', disabled = false }) => (
+const GradientButton = ({ onClick, icon: Icon, text, gradient, className = '', disabled = false, isMobile = false }) => (
   <button 
-    className={`btn ${className}`}
+    className={className}
     onClick={onClick}
     disabled={disabled}
     style={{
@@ -171,84 +149,117 @@ const GradientButton = ({ onClick, icon: Icon, text, gradient, className = '', d
       fontWeight: '600',
       boxShadow: `0 4px 15px ${gradient.includes('e50914') ? 'rgba(229, 9, 20, 0.4)' : 'rgba(34, 197, 94, 0.4)'}`,
       opacity: disabled ? 0.5 : 1,
-      cursor: disabled ? 'not-allowed' : 'pointer'
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      padding: isMobile ? '10px 20px' : '12px 24px',
+      borderRadius: '8px',
+      fontSize: isMobile ? '0.9rem' : '1rem',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: 'all 0.2s',
+      width: '100%'
     }}
+    onMouseEnter={(e) => !disabled && (e.currentTarget.style.transform = 'translateY(-2px)')}
+    onMouseLeave={(e) => !disabled && (e.currentTarget.style.transform = 'translateY(0)')}
   >
-    {Icon && <Icon size={18} className="me-2" />}
+    {Icon && <Icon size={isMobile ? 16 : 18} style={{ marginRight: '8px' }} />}
     {text}
   </button>
 );
 
 // ==================== INFO DISPLAY COMPONENTS ====================
-const InfoItem = ({ label, value, children }) => (
-  <div className="mb-2">
-    <small style={{ color: '#999' }}>{label}</small>
-    {children || <div className="text-white">{value}</div>}
+const InfoItem = ({ label, value, children, isMobile = false }) => (
+  <div style={{ marginBottom: isMobile ? '10px' : '12px' }}>
+    <small style={{ color: '#999', fontSize: isMobile ? '0.8rem' : '0.85rem' }}>{label}</small>
+    {children || <div style={{ color: '#fff', fontSize: isMobile ? '0.9rem' : '1rem' }}>{value}</div>}
   </div>
 );
 
-const InfoBadge = ({ icon: Icon, text, color = '#e50914' }) => (
-  <div className="d-flex align-items-center">
-    <Icon size={18} className="me-2" style={{ color }} />
+const InfoBadge = ({ icon: Icon, text, color = '#e50914', isMobile = false }) => (
+  <div style={{ 
+    display: 'flex', 
+    alignItems: 'center',
+    fontSize: isMobile ? '0.85rem' : '0.95rem'
+  }}>
+    <Icon size={isMobile ? 16 : 18} style={{ marginRight: '8px', color }} />
     <span>{text}</span>
   </div>
 );
 
-const Badge = ({ children, variant = 'secondary' }) => {
+const Badge = ({ children, variant = 'secondary', isMobile = false }) => {
   const variants = {
-    secondary: 'bg-secondary',
-    success: 'bg-success',
-    warning: 'bg-warning text-dark',
-    info: 'bg-info'
+    secondary: '#6c757d',
+    success: '#22c55e',
+    warning: '#ffc107',
+    info: '#0dcaf0'
   };
 
   return (
-    <span className={`badge ${variants[variant]} px-3 py-2`}>
+    <span style={{
+      background: variants[variant],
+      color: variant === 'warning' ? '#000' : '#fff',
+      padding: isMobile ? '4px 12px' : '6px 16px',
+      borderRadius: '20px',
+      fontSize: isMobile ? '0.75rem' : '0.85rem',
+      fontWeight: '500',
+      display: 'inline-block'
+    }}>
       {children}
     </span>
   );
 };
 
 // ==================== QUICK INFO BOX COMPONENT ====================
-const QuickInfoBox = ({ animeData }) => {
+const QuickInfoBox = ({ animeData, isMobile = false }) => {
   const contentIsMovie = isMovie(animeData.type);
   
   return (
-    <div className="mt-4 p-3" style={{
+    <div style={{
+      marginTop: isMobile ? '15px' : '20px',
+      padding: isMobile ? '12px' : '15px',
       background: 'rgba(255,255,255,0.05)',
       borderRadius: '10px',
       border: '1px solid rgba(255,255,255,0.1)'
     }}>
-      <h6 className="fw-bold mb-3" style={{ color: '#e50914' }}>Quick Info</h6>
+      <h6 style={{ 
+        fontWeight: '700', 
+        marginBottom: isMobile ? '12px' : '15px',
+        color: '#e50914',
+        fontSize: isMobile ? '0.95rem' : '1rem'
+      }}>Quick Info</h6>
       
-      <InfoItem label="Status:">
-        <Badge variant={animeData.complete ? 'secondary' : 'success'}>
+      <InfoItem label="Status:" isMobile={isMobile}>
+        <Badge variant={animeData.complete ? 'secondary' : 'success'} isMobile={isMobile}>
           {animeData.complete ? 'Completed' : 'Ongoing'}
         </Badge>
       </InfoItem>
 
-      {!contentIsMovie && <InfoItem label="Episodes:" value={animeData.episodes || 'N/A'} />}
+      {!contentIsMovie && <InfoItem label="Episodes:" value={animeData.episodes || 'N/A'} isMobile={isMobile} />}
       
-      <InfoItem label="Rating:">
-        <div>
-          <Star size={14} fill="#ffc107" color="#ffc107" className="me-1" />
-          <span className="text-white">{animeData.rating || 'N/A'}</span>
+      <InfoItem label="Rating:" isMobile={isMobile}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Star size={isMobile ? 12 : 14} fill="#ffc107" color="#ffc107" style={{ marginRight: '6px' }} />
+          <span style={{ color: '#fff', fontSize: isMobile ? '0.9rem' : '1rem' }}>{animeData.rating || 'N/A'}</span>
         </div>
       </InfoItem>
 
-      <InfoItem label="Type:" value={animeData.type?.toUpperCase()} />
-      <InfoItem label="Year:" value={getYear(animeData)} />
+      <InfoItem label="Type:" value={animeData.type?.toUpperCase()} isMobile={isMobile} />
+      <InfoItem label="Year:" value={getYear(animeData)} isMobile={isMobile} />
       
       {contentIsMovie && animeData.duration && (
-        <InfoItem label="Duration:" value={`${animeData.duration} min`} />
+        <InfoItem label="Duration:" value={`${animeData.duration} min`} isMobile={isMobile} />
       )}
     </div>
   );
 };
 
 // ==================== ANIME POSTER COMPONENT ====================
-const AnimePoster = ({ animeData, onWatchClick, onDownloadClick }) => (
-  <div className="col-lg-3 col-md-4 mb-4">
+const AnimePoster = ({ animeData, onWatchClick, onDownloadClick, isMobile = false }) => (
+  <div style={{ 
+    marginBottom: isMobile ? '30px' : '0',
+    maxWidth: isMobile ? '300px' : '100%',
+    margin: isMobile ? '0 auto 30px' : '0'
+  }}>
     <div style={{
       borderRadius: '12px',
       overflow: 'hidden',
@@ -263,48 +274,79 @@ const AnimePoster = ({ animeData, onWatchClick, onDownloadClick }) => (
       />
     </div>
 
-    <GradientButton
-      onClick={onWatchClick}
-      icon={Play}
-      text="Watch Now"
-      gradient="linear-gradient(135deg, #e50914 0%, #ff1744 100%)"
-      className="w-100 mt-3 py-3"
-    />
+    <div style={{ marginTop: isMobile ? '15px' : '20px' }}>
+      <GradientButton
+        onClick={onWatchClick}
+        icon={Play}
+        text="Watch Now"
+        gradient="linear-gradient(135deg, #e50914 0%, #ff1744 100%)"
+        isMobile={isMobile}
+      />
+    </div>
 
-    <GradientButton
-      onClick={onDownloadClick}
-      icon={Download}
-      text="Download"
-      gradient="linear-gradient(135deg, #22c55e 0%, #16a34a 100%)"
-      className="w-100 mt-2 py-3"
-    />
+    <div style={{ marginTop: '10px' }}>
+      <GradientButton
+        onClick={onDownloadClick}
+        icon={Download}
+        text="Download"
+        gradient="linear-gradient(135deg, #22c55e 0%, #16a34a 100%)"
+        isMobile={isMobile}
+      />
+    </div>
 
-    <QuickInfoBox animeData={animeData} />
+    <QuickInfoBox animeData={animeData} isMobile={isMobile} />
   </div>
 );
 
 // ==================== ANIME HEADER COMPONENT ====================
-const AnimeHeader = ({ animeData }) => {
+const AnimeHeader = ({ animeData, isMobile = false }) => {
   const contentIsMovie = isMovie(animeData.type);
   
   return (
     <div>
-      <h1 className="display-5 fw-bold mb-3">
-        {contentIsMovie && <Film size={32} className="me-2" style={{ display: 'inline', marginBottom: '6px', color: '#e50914' }} />}
+      <h1 style={{
+        fontSize: isMobile ? '1.5rem' : 'clamp(1.8rem, 4vw, 2.5rem)',
+        fontWeight: '700',
+        marginBottom: isMobile ? '12px' : '15px',
+        display: 'flex',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '10px'
+      }}>
+        {contentIsMovie && <Film size={isMobile ? 24 : 32} style={{ color: '#e50914' }} />}
         {animeData.name}
       </h1>
-      <p className="lead mb-4" style={{ color: '#ccc' }}>
+      <p style={{ 
+        color: '#ccc',
+        fontSize: isMobile ? '0.9rem' : '1.1rem',
+        marginBottom: isMobile ? '15px' : '20px'
+      }}>
         {animeData.subOrDub} | {animeData.type?.toUpperCase()}
-        {contentIsMovie && <span className="badge bg-info ms-2">Movie</span>}
+        {contentIsMovie && (
+          <span style={{
+            background: '#0dcaf0',
+            color: '#000',
+            padding: '4px 12px',
+            borderRadius: '15px',
+            fontSize: '0.75rem',
+            marginLeft: '10px',
+            fontWeight: '500'
+          }}>Movie</span>
+        )}
       </p>
 
-      <div className="d-flex flex-wrap gap-3 mb-4">
-        <InfoBadge icon={Calendar} text={getYear(animeData)} />
-        {!contentIsMovie && <InfoBadge icon={Tv} text={`${animeData.episodes || 'N/A'} Episodes`} />}
-        <InfoBadge icon={Clock} text={animeData.complete ? 'Completed' : 'Ongoing'} />
-        <div className="d-flex align-items-center">
-          <Star size={18} fill="#ffc107" color="#ffc107" className="me-2" />
-          <span className="fw-bold">{animeData.rating}</span>
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: isMobile ? '12px' : '15px',
+        marginBottom: isMobile ? '15px' : '20px'
+      }}>
+        <InfoBadge icon={Calendar} text={getYear(animeData)} isMobile={isMobile} />
+        {!contentIsMovie && <InfoBadge icon={Tv} text={`${animeData.episodes || 'N/A'} Eps`} isMobile={isMobile} />}
+        <InfoBadge icon={Clock} text={animeData.complete ? 'Completed' : 'Ongoing'} isMobile={isMobile} />
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Star size={isMobile ? 16 : 18} fill="#ffc107" color="#ffc107" style={{ marginRight: '8px' }} />
+          <span style={{ fontWeight: '700', fontSize: isMobile ? '0.9rem' : '1rem' }}>{animeData.rating}</span>
         </div>
       </div>
     </div>
@@ -312,14 +354,14 @@ const AnimeHeader = ({ animeData }) => {
 };
 
 // ==================== EPISODE CARD COMPONENT ====================
-const EpisodeCard = ({ episode, onWatch, onDownload }) => {
+const EpisodeCard = ({ episode, onWatch, onDownload, isMobile = false }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <div className="col-md-6">
+    <div style={{ width: '100%', marginBottom: isMobile ? '10px' : '0' }}>
       <div 
-        className="p-3" 
         style={{
+          padding: isMobile ? '12px' : '15px',
           background: isHovered ? 'rgba(229, 9, 20, 0.1)' : 'rgba(255,255,255,0.05)',
           borderRadius: '8px',
           border: `1px solid ${isHovered ? '#e50914' : 'rgba(255,255,255,0.1)'}`,
@@ -329,17 +371,48 @@ const EpisodeCard = ({ episode, onWatch, onDownload }) => {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className="d-flex justify-content-between align-items-center">
-          <div style={{ flex: 1 }}>
-            <div className="fw-bold">Episode {episode.number}</div>
-            <small style={{ color: '#999' }}>{episode.name}</small>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: isMobile ? '10px' : '15px',
+          flexWrap: isMobile ? 'wrap' : 'nowrap'
+        }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ 
+              fontWeight: '700',
+              fontSize: isMobile ? '0.95rem' : '1rem',
+              marginBottom: '4px'
+            }}>
+              Episode {episode.number}
+            </div>
+            <small style={{ 
+              color: '#999',
+              fontSize: isMobile ? '0.8rem' : '0.85rem',
+              display: 'block',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}>
+              {episode.name}
+            </small>
             {episode.note && (
-              <div><small style={{ color: '#ffc107' }}>{episode.note}</small></div>
+              <div>
+                <small style={{ 
+                  color: '#ffc107',
+                  fontSize: isMobile ? '0.75rem' : '0.8rem'
+                }}>
+                  {episode.note}
+                </small>
+              </div>
             )}
           </div>
-          <div className="d-flex gap-2">
+          <div style={{ 
+            display: 'flex', 
+            gap: isMobile ? '6px' : '8px',
+            flexShrink: 0
+          }}>
             <button 
-              className="btn btn-sm" 
               onClick={(e) => {
                 e.stopPropagation();
                 onWatch();
@@ -348,14 +421,23 @@ const EpisodeCard = ({ episode, onWatch, onDownload }) => {
                 background: '#e50914',
                 color: '#fff',
                 border: 'none',
-                padding: '6px 12px'
+                padding: isMobile ? '6px 12px' : '8px 16px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: isMobile ? '0.8rem' : '0.85rem',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.2s'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
-              <Play size={14} className="me-1" />
-              Watch
+              <Play size={isMobile ? 12 : 14} />
+              {!isMobile && 'Watch'}
             </button>
             <button 
-              className="btn btn-sm" 
               onClick={(e) => {
                 e.stopPropagation();
                 onDownload();
@@ -364,10 +446,19 @@ const EpisodeCard = ({ episode, onWatch, onDownload }) => {
                 background: '#22c55e',
                 color: '#fff',
                 border: 'none',
-                padding: '6px 12px'
+                padding: isMobile ? '6px 12px' : '8px 16px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: isMobile ? '0.8rem' : '0.85rem',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                transition: 'all 0.2s'
               }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
-              <Download size={14} />
+              <Download size={isMobile ? 12 : 14} />
             </button>
           </div>
         </div>
@@ -375,54 +466,111 @@ const EpisodeCard = ({ episode, onWatch, onDownload }) => {
     </div>
   );
 };
-
 // ==================== EPISODE LIST COMPONENT ====================
-const EpisodeList = ({ episodes, animeSlug, onNavigate, isMovieContent }) => {
+const EpisodeList = ({ episodes, animeSlug, onNavigate, isMovieContent, isMobile = false }) => {
   const [showAll, setShowAll] = useState(false);
   const displayedEpisodes = showAll ? episodes : episodes.slice(0, 6);
 
   if (isMovieContent) {
     return (
-      <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-        <Film size={48} style={{ color: '#e50914', marginBottom: '15px' }} />
-        <h5 className="fw-bold mb-2">This is a Movie</h5>
-        <p style={{ color: '#999' }}>Movies don't have episodes. Use the watch or download buttons above.</p>
+      <div style={{ 
+        textAlign: 'center', 
+        padding: isMobile ? '30px 15px' : '40px 20px'
+      }}>
+        <Film size={isMobile ? 40 : 48} style={{ color: '#e50914', marginBottom: '15px' }} />
+        <h5 style={{ 
+          fontWeight: '700', 
+          marginBottom: '10px',
+          fontSize: isMobile ? '1.1rem' : '1.3rem'
+        }}>
+          This is a Movie
+        </h5>
+        <p style={{ 
+          color: '#999',
+          fontSize: isMobile ? '0.85rem' : '0.95rem',
+          lineHeight: '1.6'
+        }}>
+          Movies don't have episodes. Use the watch or download buttons above.
+        </p>
       </div>
     );
   }
 
   if (episodes.length === 0) {
-    return <p style={{ color: '#999' }}>No episodes available</p>;
+    return (
+      <p style={{ 
+        color: '#999',
+        textAlign: 'center',
+        padding: '20px',
+        fontSize: isMobile ? '0.9rem' : '1rem'
+      }}>
+        No episodes available
+      </p>
+    );
   }
 
   return (
     <div>
-      <h5 className="fw-bold mb-3">Episode List ({episodes.length})</h5>
-      <div className="row g-3">
+      <h5 style={{ 
+        fontWeight: '700', 
+        marginBottom: isMobile ? '15px' : '20px',
+        fontSize: isMobile ? '1rem' : '1.2rem'
+      }}>
+        Episode List ({episodes.length})
+      </h5>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))',
+        gap: isMobile ? '10px' : '15px'
+      }}>
         {displayedEpisodes.map((episode) => (
           <EpisodeCard 
             key={episode.id} 
             episode={episode}
             onWatch={() => onNavigate(`/watch/${animeSlug}/${episode.id}`)}
             onDownload={() => onNavigate(`/download/${animeSlug}/${episode.id}`)}
+            isMobile={isMobile}
           />
         ))}
       </div>
       
       {episodes.length > 6 && (
         <button
-          className="btn w-100 mt-3"
           onClick={() => setShowAll(!showAll)}
           style={{
+            width: '100%',
+            marginTop: isMobile ? '15px' : '20px',
             background: 'rgba(255,255,255,0.1)',
             color: '#fff',
-            border: '1px solid rgba(255,255,255,0.2)'
+            border: '1px solid rgba(255,255,255,0.2)',
+            padding: isMobile ? '10px 20px' : '12px 24px',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontSize: isMobile ? '0.9rem' : '1rem',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
           }}
         >
           {showAll ? (
-            <><ChevronUp size={18} className="me-2" /> Show Less</>
+            <>
+              <ChevronUp size={isMobile ? 16 : 18} />
+              Show Less
+            </>
           ) : (
-            <><ChevronDown size={18} className="me-2" /> Show All Episodes ({episodes.length})</>
+            <>
+              <ChevronDown size={isMobile ? 16 : 18} />
+              Show All Episodes ({episodes.length})
+            </>
           )}
         </button>
       )}
@@ -431,10 +579,21 @@ const EpisodeList = ({ episodes, animeSlug, onNavigate, isMovieContent }) => {
 };
 
 // ==================== TAB CONTENT COMPONENTS ====================
-const InfoTab = ({ animeData }) => (
+const InfoTab = ({ animeData, isMobile = false }) => (
   <div>
-    <h5 className="fw-bold mb-3">Series Information</h5>
-    <ul style={{ color: '#ccc', lineHeight: '2' }}>
+    <h5 style={{ 
+      fontWeight: '700', 
+      marginBottom: isMobile ? '15px' : '20px',
+      fontSize: isMobile ? '1rem' : '1.2rem'
+    }}>
+      Series Information
+    </h5>
+    <ul style={{ 
+      color: '#ccc', 
+      lineHeight: isMobile ? '1.8' : '2',
+      fontSize: isMobile ? '0.85rem' : '0.95rem',
+      paddingLeft: isMobile ? '20px' : '25px'
+    }}>
       <li><strong>Full Name:</strong> {animeData.name}</li>
       <li><strong>Rating:</strong> {animeData.rating}</li>
       <li><strong>Type:</strong> {animeData.type?.toUpperCase()}</li>
@@ -448,49 +607,88 @@ const InfoTab = ({ animeData }) => (
   </div>
 );
 
-const StorylineTab = ({ overview }) => (
+const StorylineTab = ({ overview, isMobile = false }) => (
   <div>
-    <h5 className="fw-bold mb-3">Storyline</h5>
-    <p style={{ color: '#ccc', lineHeight: '1.8' }}>
+    <h5 style={{ 
+      fontWeight: '700', 
+      marginBottom: isMobile ? '15px' : '20px',
+      fontSize: isMobile ? '1rem' : '1.2rem'
+    }}>
+      Storyline
+    </h5>
+    <p style={{ 
+      color: '#ccc', 
+      lineHeight: '1.8',
+      fontSize: isMobile ? '0.9rem' : '1rem'
+    }}>
       {overview || 'No description available.'}
     </p>
   </div>
 );
 
 // ==================== TAB NAVIGATION ====================
-const TabButton = ({ active, onClick, label }) => (
+const TabButton = ({ active, onClick, label, isMobile = false }) => (
   <button
-    className="btn"
     onClick={onClick}
     style={{
       background: active ? '#e50914' : 'rgba(255,255,255,0.1)',
       color: '#fff',
       border: 'none',
       fontWeight: active ? '600' : '400',
-      textTransform: 'capitalize'
+      textTransform: 'capitalize',
+      padding: isMobile ? '8px 16px' : '10px 20px',
+      borderRadius: '6px',
+      cursor: 'pointer',
+      fontSize: isMobile ? '0.85rem' : '0.95rem',
+      transition: 'all 0.2s',
+      flex: isMobile ? '1' : 'auto'
+    }}
+    onMouseEnter={(e) => {
+      if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
+    }}
+    onMouseLeave={(e) => {
+      if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
     }}
   >
     {label}
   </button>
 );
 
-const TabNavigation = ({ activeTab, setActiveTab, tabs }) => (
-  <div className="d-flex gap-2 mb-3 flex-wrap">
+const TabNavigation = ({ activeTab, setActiveTab, tabs, isMobile = false }) => (
+  <div style={{
+    display: 'flex',
+    gap: isMobile ? '8px' : '10px',
+    marginBottom: isMobile ? '15px' : '20px',
+    flexWrap: 'wrap'
+  }}>
     {tabs.map(tab => (
       <TabButton
         key={tab.id}
         active={activeTab === tab.id}
         onClick={() => setActiveTab(tab.id)}
         label={tab.label}
+        isMobile={isMobile}
       />
     ))}
   </div>
 );
 
 // ==================== CONTENT SECTION ====================
-const ContentSection = ({ title, children, customStyles = {} }) => (
-  <div className="mb-4" style={customStyles}>
-    {title && <h6 className="fw-bold mb-2" style={{ color: '#e50914' }}>{title}</h6>}
+const ContentSection = ({ title, children, isMobile = false, customStyles = {} }) => (
+  <div style={{ 
+    marginBottom: isMobile ? '15px' : '20px',
+    ...customStyles 
+  }}>
+    {title && (
+      <h6 style={{ 
+        fontWeight: '700', 
+        marginBottom: isMobile ? '8px' : '10px',
+        color: '#e50914',
+        fontSize: isMobile ? '0.9rem' : '1rem'
+      }}>
+        {title}
+      </h6>
+    )}
     {children}
   </div>
 );
@@ -504,6 +702,16 @@ const AnimeDetailPage = () => {
   const [episodes, setEpisodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('info');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -564,9 +772,19 @@ const AnimeDetailPage = () => {
     return (
       <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
         <Navbar />
-        <div className="container text-center" style={{ marginTop: '200px' }}>
-          <h2>Anime not found</h2>
-          <p style={{ color: '#999' }}>The anime you're looking for doesn't exist or has been removed.</p>
+        <div style={{ 
+          textAlign: 'center',
+          marginTop: isMobile ? '150px' : '200px',
+          padding: '20px'
+        }}>
+          <h2 style={{ fontSize: isMobile ? '1.3rem' : '1.8rem' }}>Anime not found</h2>
+          <p style={{ 
+            color: '#999',
+            fontSize: isMobile ? '0.9rem' : '1rem',
+            marginTop: '10px'
+          }}>
+            The anime you're looking for doesn't exist or has been removed.
+          </p>
         </div>
         <Footer />
       </div>
@@ -574,9 +792,9 @@ const AnimeDetailPage = () => {
   }
 
   const tabs = [
-    { id: 'info', label: 'Series Info' },
+    { id: 'info', label: isMobile ? 'Info' : 'Series Info' },
     { id: 'storyline', label: 'Storyline' },
-    { id: 'episodes', label: isMovie(animeData?.type) ? 'Content Info' : 'Episodes' }
+    { id: 'episodes', label: isMovie(animeData?.type) ? (isMobile ? 'Content' : 'Content Info') : 'Episodes' }
   ];
 
   return (
@@ -585,60 +803,103 @@ const AnimeDetailPage = () => {
 
       {/* Cover Banner */}
       <div style={{
-        marginTop: '80px',
-        height: '400px',
+        marginTop: isMobile ? '60px' : '80px',
+        height: isMobile ? '250px' : '400px',
         background: `linear-gradient(to bottom, rgba(10,10,10,0.3), rgba(10,10,10,1)), url(${getImageUrl(animeData.image?.backdrop, 'original')})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center'
       }} />
 
-      <div className="container" style={{ marginTop: '-200px', position: 'relative', zIndex: 10 }}>
-        <div className="row">
-          <AnimePoster 
-            animeData={animeData} 
-            onWatchClick={handleWatchClick}
-            onDownloadClick={handleDownloadClick}
-          />
+      <div style={{
+        maxWidth: '1400px',
+        margin: '0 auto',
+        marginTop: isMobile ? '-100px' : '-200px',
+        position: 'relative',
+        zIndex: 10,
+        padding: isMobile ? '0 15px' : '0 40px'
+      }}>
+        <div style={{
+          display: isMobile ? 'block' : 'flex',
+          gap: isMobile ? '0' : '30px'
+        }}>
+          {/* Poster Column */}
+          <div style={{
+            width: isMobile ? '100%' : '25%',
+            minWidth: isMobile ? 'auto' : '250px',
+            flexShrink: 0
+          }}>
+            <AnimePoster 
+              animeData={animeData} 
+              onWatchClick={handleWatchClick}
+              onDownloadClick={handleDownloadClick}
+              isMobile={isMobile}
+            />
+          </div>
 
-          <div className="col-lg-9 col-md-8">
-            <div className="p-4" style={{
+          {/* Content Column */}
+          <div style={{ 
+            width: isMobile ? '100%' : '75%',
+            flex: 1
+          }}>
+            <div style={{
+              padding: isMobile ? '20px 15px' : '30px',
               background: 'rgba(255,255,255,0.03)',
               borderRadius: '12px',
               border: '1px solid rgba(255,255,255,0.1)'
             }}>
-              <AnimeHeader animeData={animeData} />
+              <AnimeHeader animeData={animeData} isMobile={isMobile} />
 
-              {/* Action Buttons */}
-              <div className="d-flex flex-wrap gap-3 mb-4">
-                <GradientButton
-                  onClick={handleWatchClick}
-                  icon={Play}
-                  text="Watch Online"
-                  gradient="linear-gradient(135deg, #e50914 0%, #ff1744 100%)"
-                  className="btn-lg px-4"
-                />
-                <GradientButton
-                  onClick={handleDownloadClick}
-                  icon={Download}
-                  text="Download All"
-                  gradient="linear-gradient(135deg, #22c55e 0%, #16a34a 100%)"
-                  className="btn-lg px-4"
-                />
-              </div>
+              {/* Action Buttons - Desktop Only (Already in poster on mobile) */}
+              {!isMobile && (
+                <div style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '15px',
+                  marginBottom: '25px'
+                }}>
+                  <div style={{ flex: '0 0 auto' }}>
+                    <GradientButton
+                      onClick={handleWatchClick}
+                      icon={Play}
+                      text="Watch Online"
+                      gradient="linear-gradient(135deg, #e50914 0%, #ff1744 100%)"
+                    />
+                  </div>
+                  <div style={{ flex: '0 0 auto' }}>
+                    <GradientButton
+                      onClick={handleDownloadClick}
+                      icon={Download}
+                      text="Download All"
+                      gradient="linear-gradient(135deg, #22c55e 0%, #16a34a 100%)"
+                    />
+                  </div>
+                </div>
+              )}
 
               {animeData.duration && (
-                <ContentSection title="Duration:">
-                  <span className="badge px-3 py-2" style={{ background: 'rgba(229, 9, 20, 0.2)', color: '#fff' }}>
+                <ContentSection title="Duration:" isMobile={isMobile}>
+                  <span style={{
+                    background: 'rgba(229, 9, 20, 0.2)',
+                    color: '#fff',
+                    padding: isMobile ? '4px 12px' : '6px 16px',
+                    borderRadius: '15px',
+                    fontSize: isMobile ? '0.8rem' : '0.9rem',
+                    display: 'inline-block'
+                  }}>
                     {animeData.duration} min/ep
                   </span>
                 </ContentSection>
               )}
 
               {animeData.age?.short_name && (
-                <ContentSection title="Age Rating:">
-                  <Badge variant="warning">{animeData.age.short_name}</Badge>
+                <ContentSection title="Age Rating:" isMobile={isMobile}>
+                  <Badge variant="warning" isMobile={isMobile}>{animeData.age.short_name}</Badge>
                   {animeData.age.description && (
-                    <small className="ms-2" style={{ color: '#999' }}>
+                    <small style={{ 
+                      marginLeft: '10px',
+                      color: '#999',
+                      fontSize: isMobile ? '0.75rem' : '0.85rem'
+                    }}>
                       {animeData.age.description}
                     </small>
                   )}
@@ -646,32 +907,45 @@ const AnimeDetailPage = () => {
               )}
 
               {!isMovie(animeData?.type) && seasons.length > 0 && (
-                <ContentSection title={`Seasons (${seasons.length}):`}>
-                  <div className="d-flex flex-wrap gap-2">
+                <ContentSection title={`Seasons (${seasons.length}):`} isMobile={isMobile}>
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: isMobile ? '6px' : '8px'
+                  }}>
                     {seasons.map((season, idx) => (
-                      <Badge key={idx} variant="secondary">Season {season.num}</Badge>
+                      <Badge key={idx} variant="secondary" isMobile={isMobile}>
+                        Season {season.num}
+                      </Badge>
                     ))}
                   </div>
                 </ContentSection>
               )}
 
               {/* Tabs */}
-              <div className="mb-4">
-                <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} tabs={tabs} />
+              <div style={{ marginBottom: isMobile ? '20px' : '30px' }}>
+                <TabNavigation 
+                  activeTab={activeTab} 
+                  setActiveTab={setActiveTab} 
+                  tabs={tabs}
+                  isMobile={isMobile}
+                />
 
-                <div className="p-4" style={{
+                <div style={{
+                  padding: isMobile ? '15px' : '20px',
                   background: 'rgba(255,255,255,0.05)',
                   borderRadius: '10px',
-                  minHeight: '200px'
+                  minHeight: isMobile ? '150px' : '200px'
                 }}>
-                  {activeTab === 'info' && <InfoTab animeData={animeData} />}
-                  {activeTab === 'storyline' && <StorylineTab overview={animeData.overview} />}
+                  {activeTab === 'info' && <InfoTab animeData={animeData} isMobile={isMobile} />}
+                  {activeTab === 'storyline' && <StorylineTab overview={animeData.overview} isMobile={isMobile} />}
                   {activeTab === 'episodes' && (
                     <EpisodeList 
                       episodes={episodes} 
                       animeSlug={animeData.slug || id} 
                       onNavigate={navigate}
                       isMovieContent={isMovie(animeData?.type)}
+                      isMobile={isMobile}
                     />
                   )}
                 </div>
@@ -682,6 +956,7 @@ const AnimeDetailPage = () => {
       </div>
 
       <Footer />
+      <AnimationStyles />
     </div>
   );
 };

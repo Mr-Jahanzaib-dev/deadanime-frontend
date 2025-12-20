@@ -12,12 +12,24 @@ const GenrePage = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isMobile, setIsMobile] = useState(false);
 
   const genres = [
     'ACTION', 'ADVENTURE', 'COMEDY', 'DRAMA', 'ECCHI', 'FAMILY', 
     'FANTASY', 'HISTORICAL', 'MYTHOLOGY', 'MYSTERY', 'SUPERNATURAL', 
     'ROMANCE', 'HORROR', 'KIDS', 'POLITICS', 'SCHOOL', 'SAMURAI', 'SCI-FI'
   ];
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (genre) {
@@ -74,7 +86,7 @@ const GenrePage = () => {
     if (totalPages <= 1) return null;
 
     const pages = [];
-    const showPages = window.innerWidth < 768 ? 3 : 5; // Show fewer pages on mobile
+    const showPages = isMobile ? 3 : 5; // Show fewer pages on mobile
     let startPage = Math.max(1, currentPage - Math.floor(showPages / 2));
     let endPage = Math.min(totalPages, startPage + showPages - 1);
 
@@ -87,44 +99,62 @@ const GenrePage = () => {
     }
 
     return (
-      <div className="d-flex justify-content-center align-items-center gap-2 mt-4 mt-md-5 flex-wrap px-2">
+      <div className="d-flex justify-content-center align-items-center gap-1 gap-md-2 mt-4 mt-md-5 flex-wrap px-2">
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
+          className="btn btn-sm btn-outline-danger d-none d-sm-inline"
           style={{
-            padding: '8px 16px',
+            padding: '6px 12px',
             background: currentPage === 1 ? 'rgba(255,255,255,0.1)' : 'rgba(229, 9, 20, 0.8)',
             border: 'none',
-            borderRadius: '8px',
+            borderRadius: '6px',
             color: '#fff',
             cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
             fontWeight: '600',
-            transition: 'all 0.3s',
-            fontSize: '0.9rem'
+            fontSize: '0.8rem'
           }}
         >
           Prev
+        </button>
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="btn btn-sm btn-outline-danger d-sm-none"
+          style={{
+            padding: '6px 8px',
+            background: currentPage === 1 ? 'rgba(255,255,255,0.1)' : 'rgba(229, 9, 20, 0.8)',
+            border: 'none',
+            borderRadius: '6px',
+            color: '#fff',
+            cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+            fontWeight: '600',
+            fontSize: '0.7rem'
+          }}
+        >
+          ‹
         </button>
 
         {startPage > 1 && (
           <>
             <button
               onClick={() => handlePageChange(1)}
+              className="btn btn-sm btn-outline-secondary"
               style={{
-                padding: '8px 12px',
+                padding: isMobile ? '4px 8px' : '6px 10px',
                 background: 'rgba(255,255,255,0.1)',
                 border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: '8px',
+                borderRadius: '6px',
                 color: '#fff',
                 cursor: 'pointer',
                 fontWeight: '600',
-                minWidth: '40px',
-                fontSize: '0.9rem'
+                minWidth: isMobile ? '32px' : '36px',
+                fontSize: isMobile ? '0.7rem' : '0.8rem'
               }}
             >
               1
             </button>
-            {startPage > 2 && <span style={{ color: '#666', fontSize: '0.9rem' }}>...</span>}
+            {startPage > 2 && <span style={{ color: '#666', fontSize: isMobile ? '0.7rem' : '0.8rem' }}>...</span>}
           </>
         )}
 
@@ -132,17 +162,18 @@ const GenrePage = () => {
           <button
             key={page}
             onClick={() => handlePageChange(page)}
+            className="btn btn-sm"
             style={{
-              padding: '8px 12px',
+              padding: isMobile ? '4px 8px' : '6px 10px',
               background: page === currentPage ? '#e50914' : 'rgba(255,255,255,0.1)',
               border: page === currentPage ? 'none' : '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '8px',
+              borderRadius: '6px',
               color: '#fff',
               cursor: 'pointer',
               fontWeight: '600',
-              minWidth: '40px',
+              minWidth: isMobile ? '32px' : '36px',
               transition: 'all 0.3s',
-              fontSize: '0.9rem'
+              fontSize: isMobile ? '0.7rem' : '0.8rem'
             }}
           >
             {page}
@@ -151,19 +182,20 @@ const GenrePage = () => {
 
         {endPage < totalPages && (
           <>
-            {endPage < totalPages - 1 && <span style={{ color: '#666', fontSize: '0.9rem' }}>...</span>}
+            {endPage < totalPages - 1 && <span style={{ color: '#666', fontSize: isMobile ? '0.7rem' : '0.8rem' }}>...</span>}
             <button
               onClick={() => handlePageChange(totalPages)}
+              className="btn btn-sm btn-outline-secondary"
               style={{
-                padding: '8px 12px',
+                padding: isMobile ? '4px 8px' : '6px 10px',
                 background: 'rgba(255,255,255,0.1)',
                 border: '1px solid rgba(255,255,255,0.2)',
-                borderRadius: '8px',
+                borderRadius: '6px',
                 color: '#fff',
                 cursor: 'pointer',
                 fontWeight: '600',
-                minWidth: '40px',
-                fontSize: '0.9rem'
+                minWidth: isMobile ? '32px' : '36px',
+                fontSize: isMobile ? '0.7rem' : '0.8rem'
               }}
             >
               {totalPages}
@@ -174,19 +206,36 @@ const GenrePage = () => {
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
+          className="btn btn-sm btn-outline-danger d-none d-sm-inline"
           style={{
-            padding: '8px 16px',
+            padding: '6px 12px',
             background: currentPage === totalPages ? 'rgba(255,255,255,0.1)' : 'rgba(229, 9, 20, 0.8)',
             border: 'none',
-            borderRadius: '8px',
+            borderRadius: '6px',
             color: '#fff',
             cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
             fontWeight: '600',
-            transition: 'all 0.3s',
-            fontSize: '0.9rem'
+            fontSize: '0.8rem'
           }}
         >
           Next
+        </button>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="btn btn-sm btn-outline-danger d-sm-none"
+          style={{
+            padding: '6px 8px',
+            background: currentPage === totalPages ? 'rgba(255,255,255,0.1)' : 'rgba(229, 9, 20, 0.8)',
+            border: 'none',
+            borderRadius: '6px',
+            color: '#fff',
+            cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+            fontWeight: '600',
+            fontSize: '0.7rem'
+          }}
+        >
+          ›
         </button>
       </div>
     );
@@ -196,7 +245,12 @@ const GenrePage = () => {
     <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
       <Navbar />
       
-      <div className="container" style={{ marginTop: '100px', paddingBottom: '60px', paddingLeft: '15px', paddingRight: '15px' }}>
+      <div className="container" style={{ 
+        marginTop: isMobile ? '20px' : '40px', 
+        paddingBottom: '60px', 
+        paddingLeft: isMobile ? '10px' : '15px', 
+        paddingRight: isMobile ? '10px' : '15px' 
+      }}>
         {/* Header */}
         <div className="mb-4 mb-md-5 text-center text-md-start">
           <h1 style={{
@@ -205,7 +259,7 @@ const GenrePage = () => {
             marginBottom: '10px'
           }}>
             <Grid 
-              size={window.innerWidth < 768 ? 32 : 45} 
+              size={isMobile ? 32 : 45} 
               className="me-2" 
               style={{ 
                 color: '#e50914', 
@@ -277,7 +331,7 @@ const GenrePage = () => {
             gap: '20px',
             padding: '20px'
           }}>
-            <Loader2 size={window.innerWidth < 768 ? 40 : 48} color="#e50914" style={{ animation: 'spin 1s linear infinite' }} />
+            <Loader2 size={isMobile ? 40 : 48} color="#e50914" style={{ animation: 'spin 1s linear infinite' }} />
             <p style={{ 
               color: '#999', 
               fontSize: 'clamp(0.9rem, 2vw, 1.1rem)',
@@ -348,7 +402,7 @@ const GenrePage = () => {
                           fontSize: 'clamp(0.65rem, 1.5vw, 0.75rem)',
                           fontWeight: '600'
                         }}>
-                          <Star size={window.innerWidth < 768 ? 10 : 12} fill="#fff" />
+                          <Star size={isMobile ? 10 : 12} fill="#fff" />
                           {anime.rating}
                         </div>
                       )}
@@ -368,7 +422,7 @@ const GenrePage = () => {
                           alignItems: 'center',
                           gap: '4px'
                         }}>
-                          {anime.type.toLowerCase() === 'movie' && <Film size={window.innerWidth < 768 ? 10 : 12} />}
+                          {anime.type.toLowerCase() === 'movie' && <Film size={isMobile ? 10 : 12} />}
                           {anime.type}
                         </div>
                       )}
@@ -397,7 +451,7 @@ const GenrePage = () => {
                           alignItems: 'center',
                           justifyContent: 'center'
                         }}>
-                          <Play size={window.innerWidth < 768 ? 20 : 24} fill="#fff" />
+                          <Play size={isMobile ? 20 : 24} fill="#fff" />
                         </div>
                       </div>
                     </div>
@@ -426,7 +480,7 @@ const GenrePage = () => {
                       }}>
                         {anime.year && (
                           <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <Calendar size={window.innerWidth < 768 ? 10 : 12} />
+                            <Calendar size={isMobile ? 10 : 12} />
                             {anime.year}
                           </span>
                         )}
@@ -454,7 +508,7 @@ const GenrePage = () => {
             borderRadius: 'clamp(8px, 2vw, 12px)',
             border: '1px dashed rgba(255,255,255,0.2)'
           }}>
-            <Film size={window.innerWidth < 768 ? 48 : 64} style={{ color: '#666', marginBottom: '20px' }} />
+            <Film size={isMobile ? 48 : 64} style={{ color: '#666', marginBottom: '20px' }} />
             <h3 style={{ 
               color: '#999', 
               marginBottom: '10px',
@@ -481,7 +535,7 @@ const GenrePage = () => {
             borderRadius: 'clamp(8px, 2vw, 12px)',
             border: '1px dashed rgba(255,255,255,0.2)'
           }}>
-            <Grid size={window.innerWidth < 768 ? 48 : 64} style={{ color: '#e50914', marginBottom: '20px' }} />
+            <Grid size={isMobile ? 48 : 64} style={{ color: '#e50914', marginBottom: '20px' }} />
             <h3 style={{ 
               color: '#fff', 
               marginBottom: '10px',
@@ -526,10 +580,48 @@ const GenrePage = () => {
         @media (max-width: 767.98px) {
           .container {
             max-width: 100%;
-            padding-left: 10px !important;
-            padding-right: 10px !important;
+            padding-left: 15px !important;
+            padding-right: 15px !important;
           }
           
+          .row {
+            margin-left: -8px;
+            margin-right: -8px;
+          }
+          
+          .row > * {
+            padding-left: 8px;
+            padding-right: 8px;
+          }
+
+          /* Genre buttons mobile layout */
+          .d-flex.flex-wrap {
+            justify-content: center;
+            gap: 6px !important;
+          }
+
+          .d-flex.flex-wrap button {
+            flex: 0 0 auto;
+            min-width: auto;
+            padding: 6px 10px !important;
+            font-size: 0.7rem !important;
+          }
+
+          /* Header layout adjustments */
+          .d-flex.justify-content-between {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 15px !important;
+          }
+        }
+
+        /* Tablet adjustments */
+        @media (min-width: 768px) and (max-width: 991.98px) {
+          .container {
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+          }
+
           .row {
             margin-left: -6px;
             margin-right: -6px;
@@ -541,11 +633,33 @@ const GenrePage = () => {
           }
         }
 
-        /* Tablet adjustments */
-        @media (min-width: 768px) and (max-width: 991.98px) {
+        /* Large desktop */
+        @media (min-width: 1200px) {
           .container {
-            padding-left: 20px !important;
-            padding-right: 20px !important;
+            max-width: 1400px;
+          }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 480px) {
+          .container {
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+          }
+
+          .row {
+            margin-left: -4px;
+            margin-right: -4px;
+          }
+          
+          .row > * {
+            padding-left: 4px;
+            padding-right: 4px;
+          }
+
+          .d-flex.flex-wrap button {
+            padding: 4px 8px !important;
+            font-size: 0.65rem !important;
           }
         }
       `}</style>

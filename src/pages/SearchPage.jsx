@@ -23,10 +23,21 @@ const SearchPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [filterType, setFilterType] = useState('all');
   const [detectedFilters, setDetectedFilters] = useState({ genre: '', type: '' });
+  const [isMobile, setIsMobile] = useState(false);
   
   const searchInputRef = useRef(null);
   const suggestionsRef = useRef(null);
   const debounceTimerRef = useRef(null);
+
+  // Check device size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Genre keywords mapping
   const genreKeywords = {
@@ -252,19 +263,20 @@ const SearchPage = () => {
       setSearchResults(filtered);
     }
   };
+
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(to bottom, #000 0%, #1a0000 100%)' }}>
       <Navbar />
       
       {/* Search Hero Section */}
       <div style={{ 
-        padding: '120px 5% 60px', 
+        padding: isMobile ? '100px 20px 40px' : '120px 5% 60px',
         background: 'linear-gradient(135deg, rgba(229, 9, 20, 0.1) 0%, rgba(0, 0, 0, 0.8) 100%)',
         borderBottom: '1px solid rgba(229, 9, 20, 0.2)'
       }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', textAlign: 'center' }}>
           <h1 style={{ 
-            fontSize: 'clamp(2rem, 8vw, 3rem)', 
+            fontSize: isMobile ? '2rem' : 'clamp(2rem, 8vw, 3rem)',
             fontWeight: '700', 
             marginBottom: '15px',
             background: 'linear-gradient(135deg, #fff 0%, #e50914 100%)',
@@ -275,9 +287,9 @@ const SearchPage = () => {
             Search Anime
           </h1>
           <p style={{ 
-            fontSize: 'clamp(0.9rem, 3vw, 1.2rem)', 
+            fontSize: isMobile ? '0.9rem' : 'clamp(0.9rem, 3vw, 1.2rem)',
             color: '#999', 
-            marginBottom: '40px', 
+            marginBottom: isMobile ? '30px' : '40px',
             padding: '0 10px' 
           }}>
             Search by title, genre, or type - try "horror anime" or "action movies"
@@ -299,9 +311,9 @@ const SearchPage = () => {
               style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
-                gap: 'clamp(8px, 2vw, 15px)',
+                gap: isMobile ? '10px' : 'clamp(8px, 2vw, 15px)',
                 background: 'rgba(0,0,0,0.7)', 
-                padding: 'clamp(12px, 3vw, 15px) clamp(15px, 4vw, 25px)',
+                padding: isMobile ? '12px 15px' : 'clamp(12px, 3vw, 15px) clamp(15px, 4vw, 25px)',
                 borderRadius: '50px',
                 border: '2px solid rgba(229, 9, 20, 0.3)',
                 transition: 'all 0.3s'
@@ -311,16 +323,17 @@ const SearchPage = () => {
                 e.currentTarget.style.boxShadow = '0 0 20px rgba(229, 9, 20, 0.3)';
               }}
               onBlur={(e) => {
-                e.currentTarget.style.border = '2px solid rgba(229, 9, 20, 0.3)';
-                e.currentTarget.style.boxShadow = 'none';
+                if (!showSuggestions) {
+                  e.currentTarget.style.border = '2px solid rgba(229, 9, 20, 0.3)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }
               }}
             >
-              <Search size={window.innerWidth < 768 ? 20 : 24} color="#e50914" />
+              <Search size={isMobile ? 18 : 24} color="#e50914" />
               
               <input
-                ref={searchInputRef}
                 type="text"
-                placeholder="Search anime..."
+                placeholder={isMobile ? "Search..." : "Search anime..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery.length >= 2 && setShowSuggestions(true)}
@@ -330,7 +343,7 @@ const SearchPage = () => {
                   border: 'none',
                   outline: 'none',
                   color: '#fff',
-                  fontSize: 'clamp(0.95rem, 3vw, 1.1rem)',
+                  fontSize: isMobile ? '0.95rem' : 'clamp(0.95rem, 3vw, 1.1rem)',
                   padding: '8px 0'
                 }}
               />
@@ -339,18 +352,20 @@ const SearchPage = () => {
                 <button
                   type="button"
                   onClick={handleClearSearch}
+                  aria-label="Clear search"
                   style={{
                     background: 'rgba(255,255,255,0.1)',
                     border: 'none',
                     borderRadius: '50%',
-                    width: 'clamp(30px, 8vw, 36px)',
-                    height: 'clamp(30px, 8vw, 36px)',
+                    width: isMobile ? '32px' : 'clamp(30px, 8vw, 36px)',
+                    height: isMobile ? '32px' : 'clamp(30px, 8vw, 36px)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
-                    color: '#999'
+                    color: '#999',
+                    flexShrink: 0
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
@@ -361,7 +376,7 @@ const SearchPage = () => {
                     e.currentTarget.style.color = '#999';
                   }}
                 >
-                  <X size={window.innerWidth < 768 ? 16 : 18} />
+                  <X size={isMobile ? 14 : 18} />
                 </button>
               )}
 
@@ -371,13 +386,14 @@ const SearchPage = () => {
                   background: 'linear-gradient(135deg, #e50914 0%, #ff1744 100%)',
                   border: 'none',
                   color: '#fff',
-                  padding: 'clamp(8px, 2vw, 12px) clamp(20px, 5vw, 30px)',
+                  padding: isMobile ? '8px 16px' : 'clamp(8px, 2vw, 12px) clamp(20px, 5vw, 30px)',
                   borderRadius: '25px',
                   cursor: 'pointer',
                   fontWeight: '600',
-                  fontSize: 'clamp(0.85rem, 2.5vw, 1rem)',
+                  fontSize: isMobile ? '0.85rem' : 'clamp(0.85rem, 2.5vw, 1rem)',
                   transition: 'all 0.3s',
-                  boxShadow: '0 4px 15px rgba(229, 9, 20, 0.4)'
+                  boxShadow: '0 4px 15px rgba(229, 9, 20, 0.4)',
+                  flexShrink: 0
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
@@ -388,10 +404,9 @@ const SearchPage = () => {
                   e.currentTarget.style.boxShadow = '0 4px 15px rgba(229, 9, 20, 0.4)';
                 }}
               >
-                Search
+                {isMobile ? <Search size={16} /> : 'Search'}
               </button>
             </div>
-
             {/* Suggestions Dropdown */}
             {showSuggestions && (
               <div
@@ -399,13 +414,13 @@ const SearchPage = () => {
                 style={{
                   position: 'absolute',
                   top: '100%',
-                  left: '15px',
-                  right: '15px',
+                  left: isMobile ? '10px' : '15px',
+                  right: isMobile ? '10px' : '15px',
                   marginTop: '10px',
                   background: 'rgba(20, 20, 20, 0.98)',
                   border: '1px solid rgba(229, 9, 20, 0.3)',
                   borderRadius: '12px',
-                  maxHeight: '400px',
+                  maxHeight: isMobile ? '350px' : '400px',
                   overflowY: 'auto',
                   boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
                   backdropFilter: 'blur(10px)',
@@ -414,17 +429,17 @@ const SearchPage = () => {
               >
                 {suggestionsLoading ? (
                   <div style={{ 
-                    padding: '30px', 
+                    padding: isMobile ? '25px' : '30px',
                     textAlign: 'center', 
                     color: '#999' 
                   }}>
                     <Loader2 
-                      size={window.innerWidth < 768 ? 20 : 24} 
+                      size={isMobile ? 20 : 24}
                       style={{ animation: 'spin 1s linear infinite' }} 
                     />
                     <p style={{ 
                       marginTop: '10px', 
-                      fontSize: 'clamp(0.85rem, 2.5vw, 0.9rem)' 
+                      fontSize: isMobile ? '0.85rem' : 'clamp(0.85rem, 2.5vw, 0.9rem)'
                     }}>
                       Searching...
                     </p>
@@ -437,7 +452,7 @@ const SearchPage = () => {
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        padding: 'clamp(10px, 3vw, 12px) clamp(15px, 4vw, 20px)',
+                        padding: isMobile ? '10px 12px' : 'clamp(10px, 3vw, 12px) clamp(15px, 4vw, 20px)',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
                         borderBottom: '1px solid rgba(255,255,255,0.05)'
@@ -453,11 +468,12 @@ const SearchPage = () => {
                         src={getPosterUrl(anime)}
                         alt={anime.name}
                         style={{
-                          width: 'clamp(40px, 10vw, 50px)',
-                          height: 'clamp(60px, 15vw, 75px)',
+                          width: isMobile ? '40px' : 'clamp(40px, 10vw, 50px)',
+                          height: isMobile ? '60px' : 'clamp(60px, 15vw, 75px)',
                           objectFit: 'cover',
                           borderRadius: '6px',
-                          marginRight: 'clamp(12px, 3vw, 15px)'
+                          marginRight: isMobile ? '12px' : 'clamp(12px, 3vw, 15px)',
+                          flexShrink: 0
                         }}
                         onError={(e) => {
                           e.target.onerror = null;
@@ -469,7 +485,7 @@ const SearchPage = () => {
                           color: '#fff', 
                           fontWeight: '500', 
                           marginBottom: '5px',
-                          fontSize: 'clamp(0.9rem, 2.5vw, 1rem)',
+                          fontSize: isMobile ? '0.9rem' : 'clamp(0.9rem, 2.5vw, 1rem)',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap'
@@ -478,7 +494,7 @@ const SearchPage = () => {
                         </div>
                         <div style={{ 
                           color: '#999', 
-                          fontSize: 'clamp(0.75rem, 2vw, 0.85rem)',
+                          fontSize: isMobile ? '0.75rem' : 'clamp(0.75rem, 2vw, 0.85rem)',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '8px',
@@ -486,27 +502,27 @@ const SearchPage = () => {
                         }}>
                           {anime.type?.toLowerCase() === 'movie' ? (
                             <>
-                              <Film size={14} />
+                              <Film size={12} />
                               <span>Movie</span>
                             </>
                           ) : (
                             <>
-                              <Tv size={14} />
-                              <span>TV Series</span>
+                              <Tv size={12} />
+                              <span>TV</span>
                             </>
                           )}
                           {anime.year && <><span>•</span><span>{anime.year}</span></>}
-                          {anime.rating && <><span>•</span><span>⭐ {anime.rating}</span></>}
+                          {anime.rating && !isMobile && <><span>•</span><span>⭐ {anime.rating}</span></>}
                         </div>
                       </div>
                     </div>
                   ))
                 ) : (
                   <div style={{ 
-                    padding: '30px', 
+                    padding: isMobile ? '25px' : '30px',
                     textAlign: 'center', 
                     color: '#666',
-                    fontSize: 'clamp(0.85rem, 2.5vw, 0.9rem)'
+                    fontSize: isMobile ? '0.85rem' : 'clamp(0.85rem, 2.5vw, 0.9rem)'
                   }}>
                     No suggestions found
                   </div>
@@ -521,20 +537,21 @@ const SearchPage = () => {
       {!hasSearched && (
         <div style={{ 
           maxWidth: '1200px', 
-          margin: '40px auto', 
-          padding: '0 5%' 
+          margin: isMobile ? '30px auto' : '40px auto',
+          padding: isMobile ? '0 20px' : '0 5%'
         }}>
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
             gap: '10px', 
-            marginBottom: '20px' 
+            marginBottom: isMobile ? '15px' : '20px'
           }}>
-            <TrendingUp size={window.innerWidth < 768 ? 20 : 24} color="#e50914" />
+            <TrendingUp size={isMobile ? 20 : 24} color="#e50914" />
             <h2 style={{ 
-              fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', 
+              fontSize: isMobile ? '1.2rem' : 'clamp(1.2rem, 4vw, 1.5rem)',
               fontWeight: '600', 
-              color: '#fff' 
+              color: '#fff',
+              margin: 0
             }}>
               Trending Searches
             </h2>
@@ -542,7 +559,7 @@ const SearchPage = () => {
           <div style={{ 
             display: 'flex', 
             flexWrap: 'wrap', 
-            gap: 'clamp(8px, 2vw, 12px)' 
+            gap: isMobile ? '8px' : 'clamp(8px, 2vw, 12px)'
           }}>
             {trendingSearches.map((term, index) => (
               <button
@@ -552,10 +569,10 @@ const SearchPage = () => {
                   background: 'rgba(255,255,255,0.05)',
                   border: '1px solid rgba(255,255,255,0.1)',
                   color: '#fff',
-                  padding: 'clamp(6px, 2vw, 8px) clamp(15px, 4vw, 20px)',
+                  padding: isMobile ? '8px 15px' : 'clamp(6px, 2vw, 8px) clamp(15px, 4vw, 20px)',
                   borderRadius: '20px',
                   cursor: 'pointer',
-                  fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)',
+                  fontSize: isMobile ? '0.85rem' : 'clamp(0.8rem, 2.5vw, 0.9rem)',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={(e) => {
@@ -578,29 +595,29 @@ const SearchPage = () => {
       <div style={{ 
         maxWidth: '1400px', 
         margin: '0 auto', 
-        padding: '40px 5%' 
+        padding: isMobile ? '30px 20px' : '40px 5%'
       }}>
         {loading ? (
           <div style={{ 
             textAlign: 'center', 
-            padding: '80px 20px', 
+            padding: isMobile ? '60px 20px' : '80px 20px',
             color: '#999' 
           }}>
             <Loader2 
-              size={window.innerWidth < 768 ? 40 : 48} 
+              size={isMobile ? 40 : 48}
               color="#e50914" 
               style={{ animation: 'spin 1s linear infinite' }} 
             />
             <h3 style={{ 
               marginTop: '20px', 
-              fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', 
+              fontSize: isMobile ? '1.2rem' : 'clamp(1.2rem, 4vw, 1.5rem)',
               color: '#fff' 
             }}>
               Searching...
             </h3>
             <p style={{ 
               marginTop: '10px', 
-              fontSize: 'clamp(0.9rem, 2.5vw, 1rem)' 
+              fontSize: isMobile ? '0.9rem' : 'clamp(0.9rem, 2.5vw, 1rem)'
             }}>
               Finding the best anime for you
             </p>
@@ -612,10 +629,11 @@ const SearchPage = () => {
                 background: 'rgba(229, 9, 20, 0.1)',
                 border: '1px solid rgba(229, 9, 20, 0.3)',
                 borderRadius: '8px',
-                padding: 'clamp(12px, 3vw, 15px) clamp(15px, 4vw, 20px)',
+                padding: isMobile ? '12px 15px' : 'clamp(12px, 3vw, 15px) clamp(15px, 4vw, 20px)',
                 marginBottom: '20px',
                 color: '#fff',
-                fontSize: 'clamp(0.85rem, 2.5vw, 0.95rem)'
+                fontSize: isMobile ? '0.85rem' : 'clamp(0.85rem, 2.5vw, 0.95rem)',
+                lineHeight: '1.5'
               }}>
                 <strong>Detected:</strong>{' '}
                 {detectedFilters.genre && `${detectedFilters.genre.toUpperCase()} genre`}
@@ -625,19 +643,32 @@ const SearchPage = () => {
               </div>
             )}
 
-            <div className="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-3 mb-4">
+            <div style={{
+              display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
+              justifyContent: 'space-between',
+              alignItems: isMobile ? 'flex-start' : 'center',
+              gap: isMobile ? '15px' : '20px',
+              marginBottom: isMobile ? '20px' : '30px',
+              flexWrap: 'wrap'
+            }}>
               <h2 style={{ 
-                fontSize: 'clamp(1.3rem, 4vw, 1.8rem)', 
+                fontSize: isMobile ? '1.2rem' : 'clamp(1.3rem, 4vw, 1.8rem)',
                 fontWeight: '600', 
-                color: '#fff' 
+                color: '#fff',
+                margin: 0
               }}>
-                Search Results for "{searchQuery}" ({searchResults.length} results)
+                {isMobile 
+                  ? `"${searchQuery}" (${searchResults.length})`
+                  : `Search Results for "${searchQuery}" (${searchResults.length} results)`
+                }
               </h2>
               
               <div style={{ 
                 display: 'flex', 
-                gap: 'clamp(8px, 2vw, 10px)',
-                flexWrap: 'wrap'
+                gap: isMobile ? '8px' : 'clamp(8px, 2vw, 10px)',
+                flexWrap: 'wrap',
+                width: isMobile ? '100%' : 'auto'
               }}>
                 {['all', 'tv', 'movie'].map((type) => (
                   <button
@@ -649,13 +680,24 @@ const SearchPage = () => {
                         : 'rgba(255,255,255,0.1)',
                       border: 'none',
                       color: '#fff',
-                      padding: 'clamp(6px, 2vw, 8px) clamp(15px, 4vw, 20px)',
+                      padding: isMobile ? '8px 16px' : 'clamp(6px, 2vw, 8px) clamp(15px, 4vw, 20px)',
                       borderRadius: '20px',
                       cursor: 'pointer',
-                      fontSize: 'clamp(0.8rem, 2.5vw, 0.9rem)',
+                      fontSize: isMobile ? '0.85rem' : 'clamp(0.8rem, 2.5vw, 0.9rem)',
                       fontWeight: filterType === type ? '600' : '400',
                       textTransform: 'capitalize',
-                      transition: 'all 0.2s'
+                      transition: 'all 0.2s',
+                      flex: isMobile ? '1' : 'auto'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (filterType !== type) {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (filterType !== type) {
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                      }
                     }}
                   >
                     {type === 'all' ? 'All' : type === 'tv' ? 'TV Series' : 'Movies'}
@@ -668,9 +710,11 @@ const SearchPage = () => {
               <>
                 <div style={{
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(140px, 30vw, 180px), 1fr))',
-                  gap: 'clamp(15px, 3vw, 25px)',
-                  marginBottom: '40px'
+                  gridTemplateColumns: isMobile 
+                    ? 'repeat(3, 1fr)'
+                    : 'repeat(auto-fill, minmax(clamp(140px, 30vw, 180px), 1fr))',
+                  gap: isMobile ? '12px' : 'clamp(15px, 3vw, 25px)',
+                  marginBottom: isMobile ? '30px' : '40px'
                 }}>
                   {searchResults.map((anime) => (
                     <div
@@ -688,8 +732,8 @@ const SearchPage = () => {
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    gap: 'clamp(10px, 3vw, 20px)',
-                    marginTop: '40px',
+                    gap: isMobile ? '10px' : 'clamp(10px, 3vw, 20px)',
+                    marginTop: isMobile ? '30px' : '40px',
                     flexWrap: 'wrap'
                   }}>
                     <button
@@ -699,21 +743,34 @@ const SearchPage = () => {
                         background: currentPage === 1 ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)',
                         border: 'none',
                         color: currentPage === 1 ? '#666' : '#fff',
-                        padding: 'clamp(8px, 2vw, 10px) clamp(15px, 4vw, 20px)',
+                        padding: isMobile ? '8px 16px' : 'clamp(8px, 2vw, 10px) clamp(15px, 4vw, 20px)',
                         borderRadius: '8px',
                         cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                        fontSize: 'clamp(0.85rem, 2.5vw, 0.95rem)'
+                        fontSize: isMobile ? '0.85rem' : 'clamp(0.85rem, 2.5vw, 0.95rem)',
+                        fontWeight: '500',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (currentPage !== 1) {
+                          e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (currentPage !== 1) {
+                          e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                        }
                       }}
                     >
-                      Previous
+                      {isMobile ? '←' : 'Previous'}
                     </button>
 
                     <span style={{ 
                       color: '#fff', 
-                      fontSize: 'clamp(0.85rem, 2.5vw, 1rem)', 
-                      fontWeight: '500' 
+                      fontSize: isMobile ? '0.85rem' : 'clamp(0.85rem, 2.5vw, 1rem)',
+                      fontWeight: '500',
+                      padding: '0 10px'
                     }}>
-                      Page {currentPage} of {totalPages}
+                      {isMobile ? `${currentPage}/${totalPages}` : `Page ${currentPage} of ${totalPages}`}
                     </span>
 
                     <button
@@ -723,13 +780,25 @@ const SearchPage = () => {
                         background: currentPage === totalPages ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)',
                         border: 'none',
                         color: currentPage === totalPages ? '#666' : '#fff',
-                        padding: 'clamp(8px, 2vw, 10px) clamp(15px, 4vw, 20px)',
+                        padding: isMobile ? '8px 16px' : 'clamp(8px, 2vw, 10px) clamp(15px, 4vw, 20px)',
                         borderRadius: '8px',
                         cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                        fontSize: 'clamp(0.85rem, 2.5vw, 0.95rem)'
+                        fontSize: isMobile ? '0.85rem' : 'clamp(0.85rem, 2.5vw, 0.95rem)',
+                        fontWeight: '500',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (currentPage !== totalPages) {
+                          e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (currentPage !== totalPages) {
+                          e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                        }
                       }}
                     >
-                      Next
+                      {isMobile ? '→' : 'Next'}
                     </button>
                   </div>
                 )}
@@ -737,18 +806,19 @@ const SearchPage = () => {
             ) : (
               <div style={{ 
                 textAlign: 'center', 
-                padding: 'clamp(60px, 15vw, 80px) 5%', 
+                padding: isMobile ? '60px 20px' : 'clamp(60px, 15vw, 80px) 5%',
                 color: '#999' 
               }}>
+                <Search size={isMobile ? 40 : 48} color="#666" style={{ marginBottom: '15px' }} />
                 <h3 style={{ 
-                  fontSize: 'clamp(1.2rem, 4vw, 1.5rem)', 
+                  fontSize: isMobile ? '1.1rem' : 'clamp(1.2rem, 4vw, 1.5rem)',
                   marginBottom: '10px', 
                   color: '#fff' 
                 }}>
                   No results found
                 </h3>
                 <p style={{ 
-                  fontSize: 'clamp(0.9rem, 2.5vw, 1rem)', 
+                  fontSize: isMobile ? '0.9rem' : 'clamp(0.9rem, 2.5vw, 1rem)',
                   marginBottom: '20px' 
                 }}>
                   Try different keywords or check the spelling
@@ -760,14 +830,22 @@ const SearchPage = () => {
                       background: 'rgba(229, 9, 20, 0.2)',
                       border: '1px solid #e50914',
                       color: '#fff',
-                      padding: 'clamp(8px, 2vw, 10px) clamp(15px, 4vw, 20px)',
+                      padding: isMobile ? '10px 20px' : 'clamp(8px, 2vw, 10px) clamp(15px, 4vw, 20px)',
                       borderRadius: '8px',
                       cursor: 'pointer',
                       marginTop: '15px',
-                      fontSize: 'clamp(0.85rem, 2.5vw, 0.95rem)'
+                      fontSize: isMobile ? '0.85rem' : 'clamp(0.85rem, 2.5vw, 0.95rem)',
+                      fontWeight: '500',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(229, 9, 20, 0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(229, 9, 20, 0.2)';
                     }}
                   >
-                    Clear Filter - Show All Results
+                    {isMobile ? 'Show All' : 'Clear Filter - Show All Results'}
                   </button>
                 )}
               </div>
@@ -776,18 +854,20 @@ const SearchPage = () => {
         ) : (
           <div style={{ 
             textAlign: 'center', 
-            padding: 'clamp(80px, 20vw, 100px) 5%', 
+            padding: isMobile ? '80px 20px' : 'clamp(80px, 20vw, 100px) 5%',
             color: '#999' 
           }}>
-            <Search size={window.innerWidth < 768 ? 48 : 64} color="#e50914" style={{ marginBottom: '20px' }} />
+            <Search size={isMobile ? 48 : 64} color="#e50914" style={{ marginBottom: '20px' }} />
             <h3 style={{ 
-              fontSize: 'clamp(1.3rem, 4vw, 1.8rem)', 
+              fontSize: isMobile ? '1.3rem' : 'clamp(1.3rem, 4vw, 1.8rem)',
               marginBottom: '10px', 
               color: '#fff' 
             }}>
               Start Searching
             </h3>
-            <p style={{ fontSize: 'clamp(0.95rem, 2.5vw, 1.1rem)' }}>
+            <p style={{ 
+              fontSize: isMobile ? '0.95rem' : 'clamp(0.95rem, 2.5vw, 1.1rem)'
+            }}>
               Enter a title above to find your favorite anime
             </p>
           </div>
@@ -800,6 +880,33 @@ const SearchPage = () => {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+
+        /* Smooth scrollbar for suggestions */
+        div::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        div::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 10px;
+        }
+
+        div::-webkit-scrollbar-thumb {
+          background: rgba(229, 9, 20, 0.5);
+          border-radius: 10px;
+        }
+
+        div::-webkit-scrollbar-thumb:hover {
+          background: rgba(229, 9, 20, 0.7);
+        }
+
+        /* Touch-friendly elements on mobile */
+        @media (max-width: 767px) {
+          button, a {
+            min-height: 44px;
+            -webkit-tap-highlight-color: transparent;
+          }
         }
       `}</style>
     </div>

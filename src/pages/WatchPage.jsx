@@ -214,7 +214,7 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
       height: 0,
     }}>
       {streamingUrl ? (
-        <iframe
+       <iframe
           src={streamingUrl}
           title={isMovie ? "Movie Player" : "Anime Episode Player"}
           style={{
@@ -226,7 +226,7 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
             border: "none",
           }}
           allowFullScreen
-          allow="autoplay; fullscreen; picture-in-picture"
+          allow="autoplay; fullscreen; picture-in-picture; accelerometer; gyroscope; encrypted-media"
           onError={() => setVideoError(true)}
         />
       ) : (
@@ -372,6 +372,25 @@ const WatchPage = () => {
   }, []);
 
   useEffect(() => {
+    // Prevent fullscreen change from reloading
+    const handleFullscreenChange = (e) => {
+      e.stopPropagation();
+    };
+    
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('msfullscreenchange', handleFullscreenChange);
+    
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setVideoError(false);
@@ -483,7 +502,6 @@ const WatchPage = () => {
 
     fetchData();
   }, [slug, episodeId]);
-
   const handleSeasonChange = async (season) => {
     setSelectedSeason(season);
     setLoading(true);

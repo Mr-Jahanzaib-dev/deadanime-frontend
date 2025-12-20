@@ -11,9 +11,19 @@ const OngoingPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState('new');
+  const [isMobile, setIsMobile] = useState(false);
 
   // SEO Configuration
   const siteName = 'ToonVerse Haven';
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const fetchOngoingAnime = async () => {
@@ -138,7 +148,8 @@ const OngoingPage = () => {
           alignItems: 'center', 
           justifyContent: 'center', 
           minHeight: 'calc(100vh - 80px)',
-          marginTop: '80px'
+          marginTop: isMobile ? '60px' : '80px',
+          padding: isMobile ? '20px' : '0'
         }}>
           <div style={{ textAlign: 'center' }}>
             {/* Animated Logo/Icon */}
@@ -148,15 +159,15 @@ const OngoingPage = () => {
               display: 'inline-block'
             }}>
               <div style={{
-                width: '80px',
-                height: '80px',
+                width: isMobile ? '60px' : '80px',
+                height: isMobile ? '60px' : '80px',
                 border: '4px solid rgba(201, 41, 41, 0.2)',
                 borderTop: '4px solid #cb1a38ff',
                 borderRadius: '50%',
                 animation: 'spin 1s linear infinite'
               }} />
               <Clock 
-                size={32} 
+                size={isMobile ? 24 : 32}
                 color="#f41212ff" 
                 style={{
                   position: 'absolute',
@@ -170,7 +181,7 @@ const OngoingPage = () => {
 
             {/* Loading Text */}
             <h2 style={{ 
-              fontSize: '1.8rem', 
+              fontSize: isMobile ? '1.3rem' : '1.8rem',
               fontWeight: '600',
               marginBottom: '10px',
               background: 'linear-gradient(135deg, #c52020ff 0%, #c92020ff 100%)',
@@ -180,7 +191,7 @@ const OngoingPage = () => {
             }}>
               Loading Ongoing Series...
             </h2>
-            <p style={{ color: '#999', fontSize: '1rem' }}>
+            <p style={{ color: '#999', fontSize: isMobile ? '0.85rem' : '1rem' }}>
               Fetching the latest airing anime
             </p>
 
@@ -195,8 +206,8 @@ const OngoingPage = () => {
                 <div
                   key={i}
                   style={{
-                    width: '12px',
-                    height: '12px',
+                    width: isMobile ? '10px' : '12px',
+                    height: isMobile ? '10px' : '12px',
                     background: '#28a745',
                     borderRadius: '50%',
                     animation: `bounce 1.4s ease-in-out ${i * 0.16}s infinite both`
@@ -238,26 +249,17 @@ const OngoingPage = () => {
       <Navbar />
 
       <main>
-        {/* Breadcrumb Navigation for SEO */}
-        <nav aria-label="breadcrumb" className="container" style={{ paddingTop: '100px', paddingBottom: '10px' }}>
-          <ol className="breadcrumb" style={{ background: 'transparent', padding: 0, margin: 0 }}>
-            <li className="breadcrumb-item">
-              <a href="/" style={{ color: '#999', textDecoration: 'none' }}>Home</a>
-            </li>
-            <li className="breadcrumb-item active" style={{ color: '#fff' }} aria-current="page">
-              Ongoing Anime
-            </li>
-          </ol>
-        </nav>
-
         {/* Hero Banner with Top Rated Anime */}
         {ongoingAnime[0] && (
           <section 
             aria-labelledby="featured-ongoing"
             style={{ 
               position: 'relative',
-              height: '500px',
-              background: `linear-gradient(to right, rgba(10,10,10,0.95) 40%, rgba(10,10,10,0.3)), url(https://image.tmdb.org/t/p/original${ongoingAnime[0].image?.backdrop})`,
+              height: isMobile ? '400px' : '500px',
+              marginTop: isMobile ? '60px' : '70px',
+              background: isMobile 
+                ? `linear-gradient(to bottom, rgba(10,10,10,0.7) 0%, rgba(10,10,10,0.95) 80%), url(https://image.tmdb.org/t/p/original${ongoingAnime[0].image?.backdrop})`
+                : `linear-gradient(to right, rgba(10,10,10,0.95) 40%, rgba(10,10,10,0.3)), url(https://image.tmdb.org/t/p/original${ongoingAnime[0].image?.backdrop})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}
@@ -265,67 +267,128 @@ const OngoingPage = () => {
             <article 
               itemScope 
               itemType="https://schema.org/TVSeries"
-              className="container h-100"
+              style={{
+                maxWidth: '1400px',
+                margin: '0 auto',
+                padding: isMobile ? '20px' : '0 40px',
+                height: '100%',
+                display: 'flex',
+                alignItems: isMobile ? 'flex-end' : 'center'
+              }}
             >
-              <div className="row h-100 align-items-center">
-                <div className="col-lg-7">
-                  <div className="badge mb-3 px-3 py-2" style={{ background: '#28a745' }}>
-                    <Clock size={14} className="me-1" />
-                    Top Rated Ongoing
-                  </div>
-                  <h1 
-                    id="featured-ongoing"
-                    className="display-3 fw-bold mb-3"
-                    itemProp="name"
+              <div style={{ width: '100%', maxWidth: isMobile ? '100%' : '700px' }}>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  background: '#28a745',
+                  padding: isMobile ? '6px 12px' : '8px 16px',
+                  borderRadius: '4px',
+                  marginBottom: isMobile ? '12px' : '15px',
+                  fontSize: isMobile ? '0.75rem' : '0.85rem',
+                  fontWeight: '500'
+                }}>
+                  <Clock size={isMobile ? 12 : 14} />
+                  Top Rated Ongoing
+                </div>
+                <h1 
+                  id="featured-ongoing"
+                  style={{
+                    fontSize: isMobile ? '1.8rem' : '3rem',
+                    fontWeight: '700',
+                    marginBottom: isMobile ? '12px' : '15px',
+                    lineHeight: '1.2'
+                  }}
+                  itemProp="name"
+                >
+                  {ongoingAnime[0].name}
+                </h1>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: isMobile ? '10px' : '15px',
+                  marginBottom: isMobile ? '12px' : '15px',
+                  flexWrap: 'wrap',
+                  fontSize: isMobile ? '0.8rem' : '0.9rem'
+                }}>
+                  <span style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    background: '#28a745',
+                    padding: isMobile ? '4px 10px' : '6px 12px',
+                    borderRadius: '4px'
+                  }}>
+                    <Star size={isMobile ? 12 : 14} fill="#ffc107" color="#ffc107" />
+                    <span itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
+                      <meta itemProp="ratingValue" content={ongoingAnime[0].rating} />
+                      <meta itemProp="bestRating" content="10" />
+                      {ongoingAnime[0].rating}
+                    </span>
+                  </span>
+                  <time 
+                    itemProp="datePublished" 
+                    dateTime={ongoingAnime[0].release}
+                    style={{ color: '#999' }}
                   >
-                    {ongoingAnime[0].name}
-                  </h1>
-                  <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
-                    <span className="badge px-3 py-2" style={{ background: '#28a745' }}>
-                      <Star size={14} fill="#ffc107" color="#ffc107" className="me-1" />
-                      <span itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
-                        <meta itemProp="ratingValue" content={ongoingAnime[0].rating} />
-                        <meta itemProp="bestRating" content="10" />
-                        {ongoingAnime[0].rating}
-                      </span>
-                    </span>
-                    <time 
-                      itemProp="datePublished" 
-                      dateTime={ongoingAnime[0].release}
-                      style={{ color: '#999' }}
-                    >
-                      {ongoingAnime[0].year || (ongoingAnime[0].release ? new Date(ongoingAnime[0].release).getFullYear() : 'N/A')}
-                    </time>
-                    <span style={{ color: '#999' }}>{ongoingAnime[0].type?.toUpperCase()}</span>
-                    <span itemProp="numberOfEpisodes" style={{ color: '#999' }}>
-                      {ongoingAnime[0].episodes} Episodes
-                    </span>
-                  </div>
+                    {ongoingAnime[0].year || (ongoingAnime[0].release ? new Date(ongoingAnime[0].release).getFullYear() : 'N/A')}
+                  </time>
+                  <span style={{ color: '#999' }}>{ongoingAnime[0].type?.toUpperCase()}</span>
+                  <span itemProp="numberOfEpisodes" style={{ color: '#999' }}>
+                    {ongoingAnime[0].episodes} Eps
+                  </span>
+                </div>
+                {!isMobile && (
                   <p 
-                    className="lead mb-4" 
                     itemProp="description"
-                    style={{ color: '#ccc', maxWidth: '600px' }}
+                    style={{ 
+                      color: '#ccc', 
+                      maxWidth: '600px',
+                      fontSize: '1rem',
+                      lineHeight: '1.6',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}
                   >
                     {ongoingAnime[0].overview}
                   </p>
-                  <meta itemProp="url" content={`${baseUrl}/anime/${ongoingAnime[0].slug}`} />
-                  <meta itemProp="image" content={ongoingAnime[0].image?.poster ? `https://image.tmdb.org/t/p/w500${ongoingAnime[0].image.poster}` : ""} />
-                </div>
+                )}
+                <meta itemProp="url" content={`${baseUrl}/anime/${ongoingAnime[0].slug}`} />
+                <meta itemProp="image" content={ongoingAnime[0].image?.poster ? `https://image.tmdb.org/t/p/w500${ongoingAnime[0].image.poster}` : ""} />
               </div>
             </article>
           </section>
         )}
-        {/* Main Content Section - Continuation from Part 1 */}
-        <section className="container py-5" aria-labelledby="anime-list-heading">
-          <header className="d-flex justify-content-between align-items-center mb-4">
-            <h2 id="anime-list-heading" className="fw-bold">
-              <Clock size={28} className="me-2" style={{ color: '#28a745' }} />
-              All Ongoing Anime ({ongoingAnime.length} Series)
+        {/* Main Content Section */}
+        <section style={{
+          maxWidth: '1400px',
+          margin: '0 auto',
+          padding: isMobile ? '30px 15px' : '50px 40px'
+        }} aria-labelledby="anime-list-heading">
+          <header style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: isMobile ? '20px' : '30px',
+            flexWrap: 'wrap',
+            gap: '15px'
+          }}>
+            <h2 id="anime-list-heading" style={{
+              fontSize: isMobile ? '1.3rem' : '1.8rem',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              margin: 0
+            }}>
+              <Clock size={isMobile ? 24 : 28} style={{ color: '#28a745' }} />
+              {isMobile ? 'Ongoing' : `All Ongoing Anime (${ongoingAnime.length})`}
             </h2>
             <label htmlFor="sort-select" className="visually-hidden">Sort anime by</label>
             <select 
               id="sort-select"
-              className="form-select" 
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               aria-label="Sort anime by"
@@ -333,22 +396,31 @@ const OngoingPage = () => {
                 background: 'rgba(255,255,255,0.1)', 
                 border: '1px solid rgba(255,255,255,0.2)',
                 color: '#fff',
-                width: 'auto'
+                padding: isMobile ? '8px 12px' : '10px 15px',
+                borderRadius: '6px',
+                fontSize: isMobile ? '0.85rem' : '0.9rem',
+                cursor: 'pointer',
+                outline: 'none'
               }}
             >
-              <option value="new">Latest Episodes</option>
-              <option value="popular">Most Popular</option>
-              <option value="rating">Highest Rated</option>
+              <option value="new" style={{ background: '#1a1a1a' }}>Latest Episodes</option>
+              <option value="popular" style={{ background: '#1a1a1a' }}>Most Popular</option>
+              <option value="rating" style={{ background: '#1a1a1a' }}>Highest Rated</option>
             </select>
           </header>
 
           {ongoingAnime.length > 0 ? (
-            <div className="row g-4" role="list" itemScope itemType="https://schema.org/ItemList">
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile 
+                ? 'repeat(3, 1fr)' 
+                : 'repeat(auto-fill, minmax(160px, 1fr))',
+              gap: isMobile ? '12px' : '20px'
+            }} role="list" itemScope itemType="https://schema.org/ItemList">
               <meta itemProp="numberOfItems" content={ongoingAnime.length} />
               {ongoingAnime.map((anime, index) => (
                 <div 
-                  key={anime.id} 
-                  className="col-lg-2 col-md-3 col-sm-4 col-6"
+                  key={anime.id}
                   role="listitem"
                   itemProp="itemListElement"
                   itemScope
@@ -360,23 +432,43 @@ const OngoingPage = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-5" role="status">
-              <Clock size={64} style={{ color: '#666' }} aria-hidden="true" />
-              <h3 className="mt-3" style={{ color: '#999' }}>No ongoing anime found</h3>
-              <p style={{ color: '#666' }}>Check back later for new episodes!</p>
+            <div style={{
+              textAlign: 'center',
+              padding: isMobile ? '40px 20px' : '60px 20px'
+            }} role="status">
+              <Clock size={isMobile ? 48 : 64} style={{ color: '#666' }} aria-hidden="true" />
+              <h3 style={{
+                marginTop: '20px',
+                color: '#999',
+                fontSize: isMobile ? '1.1rem' : '1.3rem'
+              }}>No ongoing anime found</h3>
+              <p style={{
+                color: '#666',
+                fontSize: isMobile ? '0.85rem' : '0.95rem'
+              }}>Check back later for new episodes!</p>
             </div>
           )}
 
-          {/* Pagination with SEO-friendly structure */}
+          {/* Pagination */}
           {totalPages > 1 && (
             <nav 
               aria-label="Pagination Navigation"
-              className="d-flex justify-content-center mt-5"
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                marginTop: isMobile ? '30px' : '50px'
+              }}
             >
-              <ul className="pagination gap-2" style={{ listStyle: 'none', padding: 0, display: 'flex' }}>
+              <ul style={{
+                listStyle: 'none',
+                padding: 0,
+                display: 'flex',
+                gap: isMobile ? '6px' : '10px',
+                flexWrap: 'wrap',
+                justifyContent: 'center'
+              }}>
                 <li>
                   <button
-                    className="btn"
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(currentPage - 1)}
                     aria-label="Go to previous page"
@@ -384,22 +476,26 @@ const OngoingPage = () => {
                       background: currentPage === 1 ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)',
                       color: currentPage === 1 ? '#666' : '#fff',
                       border: 'none',
-                      cursor: currentPage === 1 ? 'not-allowed' : 'pointer'
+                      padding: isMobile ? '8px 12px' : '10px 16px',
+                      borderRadius: '6px',
+                      cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                      fontSize: isMobile ? '0.8rem' : '0.9rem',
+                      fontWeight: '500',
+                      transition: 'all 0.2s'
                     }}
                   >
-                    « Previous
+                    {isMobile ? '«' : '« Previous'}
                   </button>
                 </li>
                 
                 {/* Page Numbers */}
-                {[...Array(Math.min(5, totalPages))].map((_, idx) => {
-                  const pageNum = currentPage > 3 ? currentPage - 2 + idx : idx + 1;
+                {[...Array(Math.min(isMobile ? 3 : 5, totalPages))].map((_, idx) => {
+                  const pageNum = currentPage > (isMobile ? 2 : 3) ? currentPage - (isMobile ? 1 : 2) + idx : idx + 1;
                   if (pageNum > totalPages) return null;
                   
                   return (
                     <li key={pageNum}>
                       <button
-                        className="btn"
                         onClick={() => setCurrentPage(pageNum)}
                         aria-label={`Go to page ${pageNum}`}
                         aria-current={currentPage === pageNum ? 'page' : undefined}
@@ -407,7 +503,13 @@ const OngoingPage = () => {
                           background: currentPage === pageNum ? '#e50914' : 'rgba(255,255,255,0.1)',
                           color: '#fff',
                           border: 'none',
-                          minWidth: '40px'
+                          padding: isMobile ? '8px 12px' : '10px 16px',
+                          borderRadius: '6px',
+                          minWidth: isMobile ? '36px' : '44px',
+                          cursor: 'pointer',
+                          fontSize: isMobile ? '0.8rem' : '0.9rem',
+                          fontWeight: currentPage === pageNum ? '600' : '500',
+                          transition: 'all 0.2s'
                         }}
                       >
                         {pageNum}
@@ -418,7 +520,6 @@ const OngoingPage = () => {
                 
                 <li>
                   <button
-                    className="btn"
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(currentPage + 1)}
                     aria-label="Go to next page"
@@ -426,10 +527,15 @@ const OngoingPage = () => {
                       background: currentPage === totalPages ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)',
                       color: currentPage === totalPages ? '#666' : '#fff',
                       border: 'none',
-                      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer'
+                      padding: isMobile ? '8px 12px' : '10px 16px',
+                      borderRadius: '6px',
+                      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                      fontSize: isMobile ? '0.8rem' : '0.9rem',
+                      fontWeight: '500',
+                      transition: 'all 0.2s'
                     }}
                   >
-                    Next »
+                    {isMobile ? '»' : 'Next »'}
                   </button>
                 </li>
               </ul>
@@ -437,34 +543,80 @@ const OngoingPage = () => {
           )}
 
           {/* Additional SEO Content Section */}
-          <aside className="mt-5 p-4" style={{ 
-            background: 'rgba(255,255,255,0.02)', 
+          <aside style={{
+            marginTop: isMobile ? '30px' : '50px',
+            padding: isMobile ? '20px' : '30px',
+            background: 'rgba(255,255,255,0.02)',
             borderRadius: '10px',
             border: '1px solid rgba(255,255,255,0.05)'
           }}>
-            <h3 className="h5 mb-3" style={{ color: '#28a745' }}>About Ongoing Anime Series</h3>
-            <p style={{ color: '#999', lineHeight: '1.8' }}>
+            <h3 style={{
+              fontSize: isMobile ? '1.1rem' : '1.3rem',
+              fontWeight: '600',
+              marginBottom: isMobile ? '12px' : '20px',
+              color: '#28a745'
+            }}>About Ongoing Anime Series</h3>
+            <p style={{
+              color: '#999',
+              lineHeight: '1.8',
+              fontSize: isMobile ? '0.85rem' : '0.95rem',
+              marginBottom: isMobile ? '20px' : '30px'
+            }}>
               Discover the latest ongoing anime series currently airing in Japan and around the world. 
               Our collection features popular shows with new episodes released weekly, including action-packed 
               shonen series, romantic comedies, thrilling mysteries, and epic fantasy adventures. Watch anime 
               with English subtitles and dubbed versions available for your convenience.
             </p>
-            <div className="row mt-4">
-              <div className="col-md-4 mb-3">
-                <h4 className="h6" style={{ color: '#28a745' }}>Weekly Updates</h4>
-                <p style={{ color: '#666', fontSize: '0.9rem' }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+              gap: isMobile ? '20px' : '30px'
+            }}>
+              <div>
+                <h4 style={{
+                  fontSize: isMobile ? '0.95rem' : '1rem',
+                  fontWeight: '600',
+                  color: '#28a745',
+                  marginBottom: '8px'
+                }}>Weekly Updates</h4>
+                <p style={{
+                  color: '#666',
+                  fontSize: isMobile ? '0.8rem' : '0.9rem',
+                  lineHeight: '1.6',
+                  margin: 0
+                }}>
                   New episodes added as soon as they air in Japan
                 </p>
               </div>
-              <div className="col-md-4 mb-3">
-                <h4 className="h6" style={{ color: '#28a745' }}>HD Quality</h4>
-                <p style={{ color: '#666', fontSize: '0.9rem' }}>
+              <div>
+                <h4 style={{
+                  fontSize: isMobile ? '0.95rem' : '1rem',
+                  fontWeight: '600',
+                  color: '#28a745',
+                  marginBottom: '8px'
+                }}>HD Quality</h4>
+                <p style={{
+                  color: '#666',
+                  fontSize: isMobile ? '0.8rem' : '0.9rem',
+                  lineHeight: '1.6',
+                  margin: 0
+                }}>
                   Stream all anime in high definition quality
                 </p>
               </div>
-              <div className="col-md-4 mb-3">
-                <h4 className="h6" style={{ color: '#28a745' }}>Multiple Languages</h4>
-                <p style={{ color: '#666', fontSize: '0.9rem' }}>
+              <div>
+                <h4 style={{
+                  fontSize: isMobile ? '0.95rem' : '1rem',
+                  fontWeight: '600',
+                  color: '#28a745',
+                  marginBottom: '8px'
+                }}>Multiple Languages</h4>
+                <p style={{
+                  color: '#666',
+                  fontSize: isMobile ? '0.8rem' : '0.9rem',
+                  lineHeight: '1.6',
+                  margin: 0
+                }}>
                   English subs and dubs available for most series
                 </p>
               </div>

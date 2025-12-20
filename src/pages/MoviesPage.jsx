@@ -15,6 +15,7 @@ const MoviesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState('rating');
+  const [isMobile, setIsMobile] = useState(false);
   const itemsPerPage = 18;
 
   // SEO Configuration
@@ -118,6 +119,17 @@ const MoviesPage = () => {
   };
 
   // Initial fetch of all movies
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   useEffect(() => {
     const fetchAllMovies = async () => {
       setLoading(true);
@@ -251,7 +263,8 @@ const MoviesPage = () => {
             alignItems: 'center', 
             justifyContent: 'center', 
             minHeight: 'calc(100vh - 80px)',
-            marginTop: '80px'
+            marginTop: '80px',
+            padding: isMobile ? '20px' : '40px'
           }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{
@@ -260,15 +273,15 @@ const MoviesPage = () => {
                 display: 'inline-block'
               }}>
                 <div style={{
-                  width: '80px',
-                  height: '80px',
+                  width: isMobile ? '60px' : '80px',
+                  height: isMobile ? '60px' : '80px',
                   border: '4px solid rgba(229, 9, 20, 0.2)',
                   borderTop: '4px solid #e50914',
                   borderRadius: '50%',
                   animation: 'spin 1s linear infinite'
                 }} />
                 <Film 
-                  size={32} 
+                  size={isMobile ? 24 : 32} 
                   color="#e50914" 
                   style={{
                     position: 'absolute',
@@ -281,7 +294,7 @@ const MoviesPage = () => {
               </div>
 
               <h2 style={{ 
-                fontSize: '1.8rem', 
+                fontSize: isMobile ? '1.4rem' : '1.8rem', 
                 fontWeight: '600',
                 marginBottom: '10px',
                 background: 'linear-gradient(135deg, #e50914 0%, #ff1744 100%)',
@@ -291,7 +304,7 @@ const MoviesPage = () => {
               }}>
                 Loading Movies...
               </h2>
-              <p style={{ color: '#999', fontSize: '1rem' }}>
+              <p style={{ color: '#999', fontSize: isMobile ? '0.9rem' : '1rem' }}>
                 Preparing your movie collection
               </p>
 
@@ -305,8 +318,8 @@ const MoviesPage = () => {
                   <div
                     key={i}
                     style={{
-                      width: '12px',
-                      height: '12px',
+                      width: isMobile ? '10px' : '12px',
+                      height: isMobile ? '10px' : '12px',
                       background: '#e50914',
                       borderRadius: '50%',
                       animation: `bounce 1.4s ease-in-out ${i * 0.16}s infinite both`
@@ -429,44 +442,52 @@ const MoviesPage = () => {
 
         {movies[0] && (
           <div style={{ 
-            marginTop: '80px',
             position: 'relative',
-            height: '500px',
+            height: isMobile ? '350px' : '500px',
             background: `linear-gradient(to right, rgba(10,10,10,0.95) 40%, rgba(10,10,10,0.3)), url(https://image.tmdb.org/t/p/original${movies[0].image?.backdrop})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
           }}>
-            <div className="container h-100">
+            <div className="container h-100" style={{ paddingTop: isMobile ? '20px' : '40px', paddingBottom: isMobile ? '20px' : '40px' }}>
               <div className="row h-100 align-items-center">
-                <div className="col-lg-7">
+                <div className={isMobile ? "col-12" : "col-lg-7"}>
                   <div className="badge mb-3 px-3 py-2" style={{ 
                     background: 'linear-gradient(135deg, #e50914 0%, #ff1744 100%)',
-                    border: 'none'
+                    border: 'none',
+                    fontSize: isMobile ? '0.75rem' : '0.9rem'
                   }}>
-                    <Film size={14} className="me-1" />
+                    <Film size={isMobile ? 12 : 14} className="me-1" />
                     Featured Movie
                   </div>
-                  <h1 className="display-3 fw-bold mb-3">
+                  <h1 className={isMobile ? "h2 fw-bold mb-3" : "display-3 fw-bold mb-3"} style={{
+                    fontSize: isMobile ? '1.5rem' : 'clamp(2rem, 5vw, 3rem)'
+                  }}>
                     {movies[0].name}
                   </h1>
                   <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
                     <span className="badge px-3 py-2" style={{ 
                       background: 'rgba(229, 9, 20, 0.2)',
                       border: '1px solid #e50914',
-                      color: '#fff'
+                      color: '#fff',
+                      fontSize: isMobile ? '0.75rem' : '0.9rem'
                     }}>
-                      <Star size={14} fill="#ffc107" color="#ffc107" className="me-1" />
+                      <Star size={isMobile ? 12 : 14} fill="#ffc107" color="#ffc107" className="me-1" />
                       {movies[0].rating}
                     </span>
-                    <span style={{ color: '#999' }}>
+                    <span style={{ color: '#999', fontSize: isMobile ? '0.8rem' : '0.9rem' }}>
                       {movies[0].year || (movies[0].release ? new Date(movies[0].release).getFullYear() : 'N/A')}
                     </span>
-                    <span style={{ color: '#999' }}>{movies[0].type?.toUpperCase()}</span>
+                    <span style={{ color: '#999', fontSize: isMobile ? '0.8rem' : '0.9rem' }}>{movies[0].type?.toUpperCase()}</span>
                     {movies[0].duration && (
-                      <span style={{ color: '#999' }}>{movies[0].duration}</span>
+                      <span style={{ color: '#999', fontSize: isMobile ? '0.8rem' : '0.9rem' }}>{movies[0].duration}</span>
                     )}
                   </div>
-                  <p className="lead mb-4" style={{ color: '#ccc', maxWidth: '600px' }}>
+                  <p className={isMobile ? "mb-4" : "lead mb-4"} style={{ 
+                    color: '#ccc', 
+                    maxWidth: '600px',
+                    fontSize: isMobile ? '0.9rem' : '1.1rem',
+                    lineHeight: '1.5'
+                  }}>
                     {movies[0].overview ? 
                       (movies[0].overview.length > 200 ? 
                         movies[0].overview.substring(0, 200) + '...' : 
@@ -475,14 +496,15 @@ const MoviesPage = () => {
                   </p>
                   <div style={{ marginTop: '2rem' }} className="d-flex gap-3 flex-wrap">
                     <button 
-                      className="btn btn-lg px-4"
+                      className={isMobile ? "btn px-3 py-2" : "btn btn-lg px-4"}
                       style={{
                         background: 'linear-gradient(135deg, #e50914 0%, #ff1744 100%)',
                         border: 'none',
                         color: '#fff',
                         fontWeight: '600',
                         boxShadow: '0 4px 15px rgba(229, 9, 20, 0.4)',
-                        transition: 'all 0.3s'
+                        transition: 'all 0.3s',
+                        fontSize: isMobile ? '0.9rem' : '1rem'
                       }}
                       onClick={() => handleMovieClick(movies[0].slug)}
                       onMouseEnter={(e) => {
@@ -494,7 +516,7 @@ const MoviesPage = () => {
                         e.currentTarget.style.boxShadow = '0 4px 15px rgba(229, 9, 20, 0.4)';
                       }}
                     >
-                      <Info size={18} className="me-2" />
+                      <Info size={isMobile ? 16 : 18} className="me-2" />
                       More Info
                     </button>
                   </div>
@@ -504,10 +526,12 @@ const MoviesPage = () => {
           </div>
         )}
 
-        <div className="container py-5" style={{ marginTop: '3rem' }}>
+        <div className="container py-5" style={{ marginTop: isMobile ? '1rem' : '2rem' }}>
           <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-            <h2 className="fw-bold mb-0">
-              <Film size={28} className="me-2" style={{ color: '#e50914' }} />
+            <h2 className={isMobile ? "fw-bold mb-0 h4" : "fw-bold mb-0"} style={{
+              fontSize: isMobile ? '1.25rem' : 'clamp(1.5rem, 3vw, 2rem)'
+            }}>
+              <Film size={isMobile ? 24 : 28} className="me-2" style={{ color: '#e50914' }} />
               Anime Movies ({allMovies.length} titles)
             </h2>
             <select 
@@ -521,8 +545,10 @@ const MoviesPage = () => {
                 background: 'rgba(255,255,255,0.1)', 
                 border: '1px solid rgba(255,255,255,0.2)',
                 color: '#fff',
-                width: 'auto',
-                minWidth: '200px'
+                width: isMobile ? '100%' : 'auto',
+                minWidth: isMobile ? 'auto' : '200px',
+                maxWidth: isMobile ? 'none' : '250px',
+                fontSize: isMobile ? '0.9rem' : '1rem'
               }}
             >
               <option value="rating">Highest Rated</option>
@@ -533,11 +559,11 @@ const MoviesPage = () => {
           </div>
 
           {movies.length > 0 ? (
-            <div className="row g-4">
+            <div className="row g-3 g-md-4">
               {movies.map(anime => (
                 <div 
                   key={anime.id} 
-                  className="col-lg-2 col-md-3 col-sm-4 col-6"
+                  className="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-6"
                   onClick={() => handleMovieClick(anime.slug)}
                   style={{ cursor: 'pointer' }}
                 >
@@ -547,9 +573,9 @@ const MoviesPage = () => {
             </div>
           ) : (
             <div className="text-center py-5">
-              <Film size={64} style={{ color: '#666' }} />
-              <h3 className="mt-3" style={{ color: '#999' }}>No movies found</h3>
-              <p style={{ color: '#666' }}>
+              <Film size={isMobile ? 48 : 64} style={{ color: '#666' }} />
+              <h3 className="mt-3" style={{ color: '#999', fontSize: isMobile ? '1.25rem' : '1.5rem' }}>No movies found</h3>
+              <p style={{ color: '#666', fontSize: isMobile ? '0.85rem' : '1rem' }}>
                 We couldn't find any movies in our database.
                 <br />
                 Try checking back later or browse other categories.
@@ -558,9 +584,9 @@ const MoviesPage = () => {
           )}
 
           {totalPages > 1 && movies.length > 0 && (
-            <div className="d-flex justify-content-center align-items-center mt-5 gap-2 flex-wrap">
+            <div className="d-flex justify-content-center align-items-center mt-5 gap-1 gap-md-2 flex-wrap px-2">
               <button
-                className="btn"
+                className="btn d-none d-md-inline"
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(1)}
                 style={{
@@ -568,14 +594,15 @@ const MoviesPage = () => {
                   color: currentPage === 1 ? '#666' : '#fff',
                   border: 'none',
                   cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                  padding: '8px 16px'
+                  padding: '8px 12px',
+                  fontSize: '0.85rem'
                 }}
               >
                 «« First
               </button>
 
               <button
-                className="btn"
+                className={isMobile ? "btn" : "btn"}
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(currentPage - 1)}
                 style={{
@@ -583,15 +610,16 @@ const MoviesPage = () => {
                   color: currentPage === 1 ? '#666' : '#fff',
                   border: 'none',
                   cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                  padding: '8px 16px'
+                  padding: isMobile ? '6px 10px' : '8px 12px',
+                  fontSize: isMobile ? '0.8rem' : '0.85rem'
                 }}
               >
-                « Previous
+                {isMobile ? '‹' : '« Previous'}
               </button>
               
               {(() => {
                 const pageNumbers = [];
-                const maxPagesToShow = 5;
+                const maxPagesToShow = isMobile ? 3 : 5;
                 let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
                 let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
                 
@@ -614,9 +642,10 @@ const MoviesPage = () => {
                         : 'rgba(255,255,255,0.1)',
                       color: '#fff',
                       border: currentPage === pageNum ? '2px solid #ff1744' : 'none',
-                      minWidth: '40px',
-                      padding: '8px 12px',
-                      fontWeight: currentPage === pageNum ? '700' : '400'
+                      minWidth: isMobile ? '32px' : '40px',
+                      padding: isMobile ? '6px 8px' : '8px 12px',
+                      fontWeight: currentPage === pageNum ? '700' : '400',
+                      fontSize: isMobile ? '0.8rem' : '0.9rem'
                     }}
                   >
                     {pageNum}
@@ -625,7 +654,7 @@ const MoviesPage = () => {
               })()}
               
               <button
-                className="btn"
+                className={isMobile ? "btn" : "btn"}
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(currentPage + 1)}
                 style={{
@@ -633,14 +662,15 @@ const MoviesPage = () => {
                   color: currentPage === totalPages ? '#666' : '#fff',
                   border: 'none',
                   cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                  padding: '8px 16px'
+                  padding: isMobile ? '6px 10px' : '8px 12px',
+                  fontSize: isMobile ? '0.8rem' : '0.85rem'
                 }}
               >
-                Next »
+                {isMobile ? '›' : 'Next »'}
               </button>
 
               <button
-                className="btn"
+                className="btn d-none d-md-inline"
                 disabled={currentPage === totalPages}
                 onClick={() => setCurrentPage(totalPages)}
                 style={{
@@ -648,7 +678,8 @@ const MoviesPage = () => {
                   color: currentPage === totalPages ? '#666' : '#fff',
                   border: 'none',
                   cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                  padding: '8px 16px'
+                  padding: '8px 12px',
+                  fontSize: '0.85rem'
                 }}
               >
                 Last »»
@@ -661,10 +692,12 @@ const MoviesPage = () => {
               marginTop: '20px', 
               textAlign: 'center', 
               color: '#666', 
-              fontSize: '0.9rem',
-              padding: '10px',
+              fontSize: isMobile ? '0.8rem' : '0.9rem',
+              padding: isMobile ? '8px' : '10px',
               background: 'rgba(255,255,255,0.05)',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              marginLeft: isMobile ? '10px' : '0',
+              marginRight: isMobile ? '10px' : '0'
             }}>
               Showing {((currentPage - 1) * itemsPerPage) + 1} - {Math.min(currentPage * itemsPerPage, allMovies.length)} of {allMovies.length} movies
               {totalPages > 1 && ` • Page ${currentPage} of ${totalPages}`}
@@ -674,6 +707,98 @@ const MoviesPage = () => {
 
         <Footer />
       </div>
+
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+          50% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.95); }
+        }
+
+        @keyframes bounce {
+          0%, 80%, 100% { 
+            transform: scale(0);
+            opacity: 0.5;
+          }
+          40% { 
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+
+        /* Mobile responsive adjustments */
+        @media (max-width: 767.98px) {
+          .container {
+            padding-left: 15px !important;
+            padding-right: 15px !important;
+          }
+
+          .row {
+            margin-left: -8px;
+            margin-right: -8px;
+          }
+
+          .row > * {
+            padding-left: 8px;
+            padding-right: 8px;
+          }
+
+          /* Hero section mobile adjustments */
+          .h-100 {
+            min-height: 300px;
+          }
+
+          /* Select dropdown full width on mobile */
+          .form-select {
+            width: 100% !important;
+            margin-top: 10px;
+          }
+
+          /* Header layout adjustments */
+          .d-flex.justify-content-between {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 15px !important;
+          }
+        }
+
+        /* Tablet adjustments */
+        @media (min-width: 768px) and (max-width: 991.98px) {
+          .container {
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+          }
+        }
+
+        /* Large screens */
+        @media (min-width: 1200px) {
+          .container {
+            max-width: 1400px;
+          }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 480px) {
+          .container {
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+          }
+
+          .row {
+            margin-left: -4px;
+            margin-right: -4px;
+          }
+
+          .row > * {
+            padding-left: 4px;
+            padding-right: 4px;
+          }
+        }
+      `}</style>
     </>
   );
 };

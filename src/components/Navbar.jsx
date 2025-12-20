@@ -178,7 +178,7 @@ const Navbar = () => {
         zIndex: 1000,
         background: scrolled ? 'rgba(10, 10, 10, 0.98)' : 'rgba(10, 10, 10, 0.95)',
         backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        borderBottom: '0.2px solid rgba(255,255,255,0.1)',
         transition: 'all 0.3s ease',
         boxShadow: scrolled ? '0 10px 30px rgba(0,0,0,0.5)' : 'none'
       }}>
@@ -266,7 +266,7 @@ const Navbar = () => {
                           padding: '10px',
                           cursor: 'pointer',
                           transition: 'all 0.2s',
-                          borderBottom: '1px solid rgba(255,255,255,0.05)'
+                          borderBottom: '0.2px solid rgba(255,255,255,0.05)'
                         }}
                         onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(229, 9, 20, 0.1)'}
                         onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
@@ -490,7 +490,7 @@ const Navbar = () => {
             right: 0;
             background: rgba(10, 10, 10, 0.98);
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 0.5px solid rgba(255,255,255,0.1);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             max-height: 70vh;
             overflow-y: auto;

@@ -45,7 +45,7 @@ const extractDownloadLinks = (links) => {
   return downloadableLinks;
 };
 
-// ==================== LOADING COMPONENT ====================
+// ==================== LOADING COMPONENT - RESPONSIVE ====================
 const LoadingScreen = () => (
   <div style={{ background: "#0a0a0a", minHeight: "100vh", color: "#fff" }}>
     <Navbar />
@@ -54,21 +54,21 @@ const LoadingScreen = () => (
       alignItems: "center",
       justifyContent: "center",
       minHeight: "calc(100vh - 80px)",
-      marginTop: "80px",
-      padding: "20px"
+      marginTop: "clamp(60px, 15vw, 80px)",
+      padding: "clamp(15px, 4vw, 20px)"
     }}>
-      <div style={{ textAlign: "center" }}>
+      <div style={{ textAlign: "center", maxWidth: "400px", width: "100%" }}>
         <div style={{
-          width: "60px",
-          height: "60px",
+          width: "clamp(50px, 12vw, 60px)",
+          height: "clamp(50px, 12vw, 60px)",
           border: "4px solid rgba(34, 197, 94, 0.2)",
           borderTop: "4px solid #22c55e",
           borderRadius: "50%",
           animation: "spinLoader 1s linear infinite",
-          margin: "0 auto 20px"
+          margin: "0 auto clamp(15px, 4vw, 20px)"
         }} />
         <h2 style={{
-          fontSize: "1.3rem",
+          fontSize: "clamp(1.1rem, 3.5vw, 1.3rem)",
           fontWeight: "600",
           color: "#22c55e"
         }}>
@@ -85,7 +85,7 @@ const LoadingScreen = () => (
   </div>
 );
 
-// ==================== INLINE LOADING OVERLAY ====================
+// ==================== INLINE LOADING OVERLAY - RESPONSIVE ====================
 const LoadingOverlay = ({ message = "Loading..." }) => (
   <>
     <style>{`
@@ -104,9 +104,10 @@ const LoadingOverlay = ({ message = "Loading..." }) => (
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      zIndex: 9999
+      zIndex: 9999,
+      padding: "20px"
     }}>
-      <div style={{ textAlign: "center" }}>
+      <div style={{ textAlign: "center", maxWidth: "90%" }}>
         <div style={{ display: "inline-block" }}>
           <Loader2 
             size={48} 
@@ -114,12 +115,14 @@ const LoadingOverlay = ({ message = "Loading..." }) => (
             style={{
               animation: "spinRotate 1s linear infinite",
               marginBottom: "15px",
-              display: "block"
+              display: "block",
+              width: "clamp(40px, 10vw, 48px)",
+              height: "clamp(40px, 10vw, 48px)"
             }}
           />
         </div>
         <h3 style={{
-          fontSize: "1.2rem",
+          fontSize: "clamp(1rem, 3vw, 1.2rem)",
           fontWeight: "600",
           color: "#22c55e",
           margin: 0
@@ -131,7 +134,7 @@ const LoadingOverlay = ({ message = "Loading..." }) => (
   </>
 );
 
-// ==================== NAVIGATION BUTTON COMPONENT ====================
+// ==================== NAVIGATION BUTTON COMPONENT - RESPONSIVE ====================
 const NavigationButton = ({ onClick, disabled, icon: Icon, text, variant = 'default', loading = false }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -140,18 +143,19 @@ const NavigationButton = ({ onClick, disabled, icon: Icon, text, variant = 'defa
       flex: 1,
       border: "none",
       color: "#fff",
-      padding: "15px",
-      borderRadius: "10px",
-      fontSize: "1rem",
+      padding: "clamp(10px, 2.5vw, 15px)",
+      borderRadius: "clamp(8px, 2vw, 10px)",
+      fontSize: "clamp(0.85rem, 2.2vw, 1rem)",
       fontWeight: "600",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      gap: "8px",
+      gap: "clamp(4px, 1.5vw, 8px)",
       cursor: disabled || loading ? "not-allowed" : "pointer",
       opacity: disabled || loading ? 0.5 : 1,
       transition: "all 0.2s",
-      position: "relative"
+      position: "relative",
+      minHeight: "44px" // Touch-friendly minimum
     };
 
     if (variant === 'primary') {
@@ -184,66 +188,100 @@ const NavigationButton = ({ onClick, disabled, icon: Icon, text, variant = 'defa
       {loading ? (
         <>
           <span style={{ display: "inline-block", animation: "buttonSpin 1s linear infinite" }}>
-            <Loader2 size={20} />
+            <Loader2 size={20} style={{ width: "clamp(16px, 4vw, 20px)", height: "clamp(16px, 4vw, 20px)" }} />
           </span>
-          {text}
+          <span className="d-none d-sm-inline">{text}</span>
         </>
       ) : (
         <>
-          {Icon && text !== 'Next' && <Icon size={20} />}
-          {text}
-          {Icon && text === 'Next' && <Icon size={20} />}
+          {Icon && text !== 'Next' && <Icon size={20} style={{ width: "clamp(16px, 4vw, 20px)", height: "clamp(16px, 4vw, 20px)" }} />}
+          <span className="d-none d-sm-inline">{text}</span>
+          <span className="d-inline d-sm-none">{text === 'Previous' ? '‹' : text === 'Next' ? '›' : text}</span>
+          {Icon && text === 'Next' && <Icon size={20} style={{ width: "clamp(16px, 4vw, 20px)", height: "clamp(16px, 4vw, 20px)" }} />}
         </>
       )}
     </button>
   );
 };
 
-// ==================== TITLE SECTION COMPONENT ====================
+// ==================== TITLE SECTION COMPONENT - RESPONSIVE ====================
 const TitleSection = ({ animeData, currentEpisode, contentIsMovie }) => (
   <div style={{
     background: "rgba(255,255,255,0.05)",
-    padding: "20px",
-    borderRadius: "12px",
-    marginBottom: "20px"
+    padding: "clamp(15px, 4vw, 20px)",
+    borderRadius: "clamp(10px, 2.5vw, 12px)",
+    marginBottom: "clamp(15px, 4vw, 20px)"
   }}>
-    <h2 style={{ fontSize: "1.5rem", marginBottom: "8px" }}>
-      {contentIsMovie && <Film size={24} className="me-2" style={{ display: "inline", marginBottom: "4px" }} />}
+    <h2 style={{ 
+      fontSize: "clamp(1.2rem, 4vw, 1.5rem)", 
+      marginBottom: "8px",
+      lineHeight: "1.3",
+      wordBreak: "break-word"
+    }}>
+      {contentIsMovie && (
+        <Film 
+          size={24} 
+          className="me-2" 
+          style={{ 
+            display: "inline", 
+            marginBottom: "4px",
+            width: "clamp(20px, 5vw, 24px)",
+            height: "clamp(20px, 5vw, 24px)"
+          }} 
+        />
+      )}
       {animeData?.name}
     </h2>
     {contentIsMovie ? (
-      <p style={{ color: "#22c55e", fontSize: "1.1rem", margin: 0 }}>
-        <span className="badge bg-info me-2">Movie</span>
-        Download available below
+      <p style={{ 
+        color: "#22c55e", 
+        fontSize: "clamp(0.95rem, 2.8vw, 1.1rem)", 
+        margin: 0,
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        gap: "8px"
+      }}>
+        <span className="badge bg-info" style={{ fontSize: "clamp(0.75rem, 2vw, 0.85rem)" }}>Movie</span>
+        <span>Download available below</span>
       </p>
     ) : (
-      <p style={{ color: "#22c55e", fontSize: "1.1rem", margin: 0 }}>
+      <p style={{ 
+        color: "#22c55e", 
+        fontSize: "clamp(0.95rem, 2.8vw, 1.1rem)", 
+        margin: 0,
+        wordBreak: "break-word"
+      }}>
         Episode {currentEpisode?.number}: {currentEpisode?.name}
       </p>
     )}
   </div>
 );
 
-// ==================== SEASON SELECTOR COMPONENT ====================
+// ==================== SEASON SELECTOR COMPONENT - RESPONSIVE ====================
 const SeasonSelector = ({ seasons, selectedSeason, onSeasonChange, disabled }) => {
   if (seasons.length <= 1) return null;
 
   return (
     <div style={{
       background: "rgba(255,255,255,0.05)",
-      borderRadius: "12px",
-      padding: "20px",
-      marginBottom: "20px",
+      borderRadius: "clamp(10px, 2.5vw, 12px)",
+      padding: "clamp(15px, 4vw, 20px)",
+      marginBottom: "clamp(15px, 4vw, 20px)",
       opacity: disabled ? 0.6 : 1,
       pointerEvents: disabled ? "none" : "auto"
     }}>
-      <h4 style={{ fontSize: "1.1rem", marginBottom: "15px", color: "#22c55e" }}>
+      <h4 style={{ 
+        fontSize: "clamp(1rem, 3vw, 1.1rem)", 
+        marginBottom: "clamp(12px, 3vw, 15px)", 
+        color: "#22c55e" 
+      }}>
         Select Season
       </h4>
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
-        gap: "10px"
+        gridTemplateColumns: "repeat(auto-fill, minmax(clamp(100px, 25vw, 120px), 1fr))",
+        gap: "clamp(8px, 2vw, 10px)"
       }}>
         {seasons.map((season) => (
           <button
@@ -254,11 +292,13 @@ const SeasonSelector = ({ seasons, selectedSeason, onSeasonChange, disabled }) =
               background: selectedSeason?.id === season.id ? "#22c55e" : "rgba(255,255,255,0.1)",
               border: "none",
               color: "#fff",
-              padding: "12px",
-              borderRadius: "8px",
-              fontSize: "1rem",
+              padding: "clamp(10px, 2.5vw, 12px)",
+              borderRadius: "clamp(6px, 1.5vw, 8px)",
+              fontSize: "clamp(0.9rem, 2.5vw, 1rem)",
               fontWeight: selectedSeason?.id === season.id ? "600" : "400",
-              cursor: disabled ? "not-allowed" : "pointer"
+              cursor: disabled ? "not-allowed" : "pointer",
+              minHeight: "44px",
+              transition: "all 0.2s"
             }}
           >
             Season {season.num}
@@ -269,25 +309,30 @@ const SeasonSelector = ({ seasons, selectedSeason, onSeasonChange, disabled }) =
   );
 };
 
-// ==================== EPISODE GRID COMPONENT ====================
+// ==================== EPISODE GRID COMPONENT - RESPONSIVE ====================
 const EpisodeGrid = ({ episodes, currentEpisode, onEpisodeSelect, disabled }) => (
   <div style={{
     background: "rgba(255,255,255,0.05)",
-    borderRadius: "12px",
-    padding: "20px",
-    marginBottom: "20px",
+    borderRadius: "clamp(10px, 2.5vw, 12px)",
+    padding: "clamp(15px, 4vw, 20px)",
+    marginBottom: "clamp(15px, 4vw, 20px)",
     opacity: disabled ? 0.6 : 1,
     pointerEvents: disabled ? "none" : "auto"
   }}>
-    <h4 style={{ fontSize: "1.1rem", marginBottom: "15px", color: "#22c55e" }}>
+    <h4 style={{ 
+      fontSize: "clamp(1rem, 3vw, 1.1rem)", 
+      marginBottom: "clamp(12px, 3vw, 15px)", 
+      color: "#22c55e" 
+    }}>
       All Episodes ({episodes.length})
     </h4>
     <div style={{
       display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-      gap: "10px",
-      maxHeight: "500px",
-      overflowY: "auto"
+      gridTemplateColumns: "repeat(auto-fill, minmax(clamp(110px, 28vw, 140px), 1fr))",
+      gap: "clamp(8px, 2vw, 10px)",
+      maxHeight: "clamp(400px, 60vh, 500px)",
+      overflowY: "auto",
+      overflowX: "hidden"
     }}>
       {episodes.map((episode) => (
         <EpisodeButton
@@ -315,18 +360,23 @@ const EpisodeButton = ({ episode, isActive, onClick, disabled }) => {
         background: isActive ? "#22c55e" : (isHovered ? "rgba(34, 197, 94, 0.2)" : "rgba(255,255,255,0.1)"),
         border: isActive ? "2px solid #16a34a" : "1px solid rgba(255,255,255,0.2)",
         color: "#fff",
-        padding: "15px 10px",
-        borderRadius: "8px",
+        padding: "clamp(12px, 3vw, 15px) clamp(8px, 2vw, 10px)",
+        borderRadius: "clamp(6px, 1.5vw, 8px)",
         cursor: disabled ? "not-allowed" : "pointer",
         textAlign: "center",
-        transition: "all 0.2s"
+        transition: "all 0.2s",
+        minHeight: "clamp(70px, 18vw, 90px)"
       }}
     >
-      <div style={{ fontWeight: "600", fontSize: "1rem", marginBottom: "4px" }}>
+      <div style={{ 
+        fontWeight: "600", 
+        fontSize: "clamp(0.9rem, 2.5vw, 1rem)", 
+        marginBottom: "4px" 
+      }}>
         EP {episode.number}
       </div>
       <div style={{
-        fontSize: "0.75rem",
+        fontSize: "clamp(0.7rem, 2vw, 0.75rem)",
         color: isActive ? "#fff" : "#999",
         overflow: "hidden",
         textOverflow: "ellipsis",
@@ -337,29 +387,45 @@ const EpisodeButton = ({ episode, isActive, onClick, disabled }) => {
     </button>
   );
 };
-
-// ==================== DOWNLOAD LINKS SECTION ====================
+// ==================== DOWNLOAD LINKS SECTION - RESPONSIVE ====================
 const DownloadLinksSection = ({ downloadLinks, downloadError, contentIsMovie, loading }) => (
   <div style={{
     background: "linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.05) 100%)",
     border: "1px solid rgba(34, 197, 94, 0.3)",
-    borderRadius: "12px",
-    padding: "25px 20px",
-    marginBottom: "20px",
+    borderRadius: "clamp(10px, 2.5vw, 12px)",
+    padding: "clamp(20px, 5vw, 25px) clamp(15px, 4vw, 20px)",
+    marginBottom: "clamp(15px, 4vw, 20px)",
     position: "relative"
   }}>
-    <div style={{ textAlign: "center", marginBottom: "25px" }}>
-      <Download size={48} color="#22c55e" style={{ marginBottom: "10px" }} />
-      <h3 style={{ color: "#22c55e", fontSize: "1.3rem", marginBottom: "5px" }}>
+    <div style={{ textAlign: "center", marginBottom: "clamp(20px, 5vw, 25px)" }}>
+      <Download 
+        size={48} 
+        color="#22c55e" 
+        style={{ 
+          marginBottom: "10px",
+          width: "clamp(40px, 10vw, 48px)",
+          height: "clamp(40px, 10vw, 48px)"
+        }} 
+      />
+      <h3 style={{ 
+        color: "#22c55e", 
+        fontSize: "clamp(1.1rem, 3.5vw, 1.3rem)", 
+        marginBottom: "5px",
+        wordBreak: "break-word"
+      }}>
         Download Links {contentIsMovie && "(Movie)"}
       </h3>
-      <p style={{ color: "#999", fontSize: "0.9rem", margin: 0 }}>
+      <p style={{ 
+        color: "#999", 
+        fontSize: "clamp(0.8rem, 2.3vw, 0.9rem)", 
+        margin: 0 
+      }}>
         Tap to download
       </p>
     </div>
 
     {loading ? (
-      <div style={{ textAlign: "center", padding: "40px 20px" }}>
+      <div style={{ textAlign: "center", padding: "clamp(30px, 8vw, 40px) clamp(15px, 4vw, 20px)" }}>
         <style>{`
           @keyframes downloadSpin {
             from { transform: rotate(0deg); }
@@ -372,32 +438,45 @@ const DownloadLinksSection = ({ downloadLinks, downloadError, contentIsMovie, lo
             color="#22c55e" 
             style={{ 
               marginBottom: "10px",
-              display: "block"
+              display: "block",
+              width: "clamp(35px, 8vw, 40px)",
+              height: "clamp(35px, 8vw, 40px)"
             }} 
           />
         </div>
-        <p style={{ color: "#999", margin: 0 }}>Loading download links...</p>
+        <p style={{ color: "#999", margin: 0, fontSize: "clamp(0.85rem, 2.5vw, 0.95rem)" }}>
+          Loading download links...
+        </p>
       </div>
     ) : downloadError ? (
       <div style={{
         background: "rgba(239, 68, 68, 0.1)",
         border: "1px solid rgba(239, 68, 68, 0.3)",
-        borderRadius: "8px",
-        padding: "20px",
+        borderRadius: "clamp(6px, 1.5vw, 8px)",
+        padding: "clamp(15px, 4vw, 20px)",
         textAlign: "center"
       }}>
-        <p style={{ color: "#ef4444", margin: 0 }}>
+        <p style={{ 
+          color: "#ef4444", 
+          margin: 0,
+          fontSize: "clamp(0.85rem, 2.5vw, 0.95rem)"
+        }}>
           ⚠️ No download links available for this {contentIsMovie ? 'movie' : 'episode'}
         </p>
       </div>
     ) : downloadLinks.length > 0 ? (
-      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "clamp(10px, 2.5vw, 12px)" }}>
         {downloadLinks.map((link, index) => (
           <DownloadLinkCard key={index} link={link} />
         ))}
       </div>
     ) : (
-      <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>
+      <div style={{ 
+        textAlign: "center", 
+        padding: "clamp(15px, 4vw, 20px)", 
+        color: "#999",
+        fontSize: "clamp(0.85rem, 2.5vw, 0.95rem)"
+      }}>
         No download links available
       </div>
     )}
@@ -420,47 +499,72 @@ const DownloadLinkCard = ({ link }) => {
         justifyContent: "space-between",
         background: isHovered ? "rgba(34, 197, 94, 0.15)" : "rgba(255,255,255,0.05)",
         border: `1px solid ${isHovered ? "#22c55e" : "rgba(34, 197, 94, 0.3)"}`,
-        borderRadius: "10px",
-        padding: "18px",
+        borderRadius: "clamp(8px, 2vw, 10px)",
+        padding: "clamp(14px, 3.5vw, 18px)",
         textDecoration: "none",
         color: "#fff",
-        transition: "all 0.2s"
+        transition: "all 0.2s",
+        gap: "clamp(10px, 3vw, 15px)",
+        minHeight: "clamp(60px, 15vw, 80px)"
       }}
     >
-      <div>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{
           color: "#22c55e",
           fontWeight: "600",
-          fontSize: "1.1rem",
-          marginBottom: "4px"
+          fontSize: "clamp(0.95rem, 3vw, 1.1rem)",
+          marginBottom: "4px",
+          wordBreak: "break-word"
         }}>
           {link.quality}
         </div>
-        <div style={{ color: "#999", fontSize: "0.85rem" }}>
+        <div style={{ 
+          color: "#999", 
+          fontSize: "clamp(0.75rem, 2.2vw, 0.85rem)" 
+        }}>
           {link.size}
         </div>
       </div>
-      <ExternalLink size={24} color="#22c55e" />
+      <ExternalLink 
+        size={24} 
+        color="#22c55e" 
+        style={{ 
+          flexShrink: 0,
+          width: "clamp(20px, 5vw, 24px)",
+          height: "clamp(20px, 5vw, 24px)"
+        }} 
+      />
     </a>
   );
 };
 
-// ==================== DESCRIPTION SECTION ====================
+// ==================== DESCRIPTION SECTION - RESPONSIVE ====================
 const DescriptionSection = ({ overview }) => (
   <div style={{
     background: "rgba(255,255,255,0.05)",
-    borderRadius: "12px",
-    padding: "20px",
-    marginTop: "20px"
+    borderRadius: "clamp(10px, 2.5vw, 12px)",
+    padding: "clamp(15px, 4vw, 20px)",
+    marginTop: "clamp(15px, 4vw, 20px)"
   }}>
-    <h4 style={{ fontSize: "1.1rem", marginBottom: "12px" }}>About</h4>
-    <p style={{ color: "#ccc", lineHeight: "1.6", margin: 0 }}>
+    <h4 style={{ 
+      fontSize: "clamp(1rem, 3vw, 1.1rem)", 
+      marginBottom: "clamp(10px, 2.5vw, 12px)" 
+    }}>
+      About
+    </h4>
+    <p style={{ 
+      color: "#ccc", 
+      lineHeight: "1.6", 
+      margin: 0,
+      fontSize: "clamp(0.9rem, 2.5vw, 1rem)",
+      wordBreak: "break-word"
+    }}>
       {overview || "No description available."}
     </p>
   </div>
 );
 
-// ==================== MAIN DOWNLOAD PAGE ====================
+// ==================== MAIN DOWNLOAD PAGE - RESPONSIVE ====================
 const DownloadPage = () => {
   const { slug, episodeId } = useParams();
   const navigate = useNavigate();
@@ -535,13 +639,11 @@ const DownloadPage = () => {
             const firstSeason = allSeasons[0];
             setSelectedSeason(firstSeason);
 
-            // Check cache first for episodes
             let episodeData;
             if (episodesCache[firstSeason.id]) {
               episodeData = episodesCache[firstSeason.id];
             } else {
               episodeData = await getEpisodes(firstSeason.id);
-              // Cache the episodes
               setEpisodesCache(prev => ({
                 ...prev,
                 [firstSeason.id]: episodeData || []
@@ -557,14 +659,12 @@ const DownloadPage = () => {
             setCurrentEpisode(episode);
 
             if (episode) {
-              // Check cache first for download links
               let downloadableLinks;
               if (downloadLinksCache[episode.id]) {
                 downloadableLinks = downloadLinksCache[episode.id];
               } else {
                 const links = await getEpisodeLinks(episode.id);
                 downloadableLinks = extractDownloadLinks(links);
-                // Cache the download links
                 setDownloadLinksCache(prev => ({
                   ...prev,
                   [episode.id]: downloadableLinks
@@ -598,19 +698,16 @@ const DownloadPage = () => {
     setEpisodeLoading(true);
 
     try {
-      // Check if episodes are already cached for this season
       if (episodesCache[season.id]) {
         setEpisodes(episodesCache[season.id]);
         if (episodesCache[season.id].length > 0) {
           await handleEpisodeSelect(episodesCache[season.id][0]);
         }
       } else {
-        // Fetch episodes if not cached
         const episodeData = await getEpisodes(season.id);
         const episodesArray = episodeData || [];
         setEpisodes(episodesArray);
         
-        // Cache the episodes
         setEpisodesCache(prev => ({
           ...prev,
           [season.id]: episodesArray
@@ -634,17 +731,14 @@ const DownloadPage = () => {
     setDownloadLinks([]);
 
     try {
-      // Check if download links are already cached for this episode
       if (downloadLinksCache[episode.id]) {
         setDownloadLinks(downloadLinksCache[episode.id]);
       } else {
-        // Fetch download links if not cached
         const links = await getEpisodeLinks(episode.id);
         const downloadableLinks = extractDownloadLinks(links);
         
         if (downloadableLinks.length > 0) {
           setDownloadLinks(downloadableLinks);
-          // Cache the download links
           setDownloadLinksCache(prev => ({
             ...prev,
             [episode.id]: downloadableLinks
@@ -701,13 +795,23 @@ const DownloadPage = () => {
           alignItems: "center",
           justifyContent: "center",
           minHeight: "calc(100vh - 80px)",
-          marginTop: "80px",
-          padding: "20px",
+          marginTop: "clamp(60px, 15vw, 80px)",
+          padding: "clamp(15px, 4vw, 20px)",
           textAlign: "center"
         }}>
-          <div>
-            <h2 style={{ color: "#ef4444", marginBottom: "10px" }}>Error Loading Anime</h2>
-            <p style={{ color: "#999", marginBottom: "20px" }}>
+          <div style={{ maxWidth: "500px", width: "100%" }}>
+            <h2 style={{ 
+              color: "#ef4444", 
+              marginBottom: "10px",
+              fontSize: "clamp(1.3rem, 4vw, 1.6rem)"
+            }}>
+              Error Loading Anime
+            </h2>
+            <p style={{ 
+              color: "#999", 
+              marginBottom: "20px",
+              fontSize: "clamp(0.9rem, 2.5vw, 1rem)"
+            }}>
               Could not load anime information. Please try again.
             </p>
             <button
@@ -716,10 +820,12 @@ const DownloadPage = () => {
                 background: "#e50914",
                 border: "none",
                 color: "#fff",
-                padding: "12px 24px",
-                borderRadius: "8px",
+                padding: "clamp(10px, 2.5vw, 12px) clamp(20px, 5vw, 24px)",
+                borderRadius: "clamp(6px, 1.5vw, 8px)",
                 cursor: "pointer",
-                fontSize: "1rem"
+                fontSize: "clamp(0.9rem, 2.5vw, 1rem)",
+                fontWeight: "500",
+                minHeight: "44px"
               }}
             >
               Go Back
@@ -737,8 +843,17 @@ const DownloadPage = () => {
 
       {episodeLoading && <LoadingOverlay message="Loading Episode..." />}
 
-      <div style={{ marginTop: "80px", paddingBottom: "40px" }}>
-        <div className="container-fluid px-3 px-md-4 px-lg-5" style={{ maxWidth: "1200px" }}>
+      <div style={{ 
+        marginTop: "clamp(60px, 15vw, 80px)", 
+        paddingBottom: "clamp(30px, 8vw, 40px)" 
+      }}>
+        <div 
+          className="container-fluid" 
+          style={{ 
+            maxWidth: "1200px",
+            padding: "0 clamp(15px, 4vw, 20px)"
+          }}
+        >
           
           <button
             onClick={() => navigate(`/anime/${slug}`)}
@@ -746,17 +861,18 @@ const DownloadPage = () => {
               background: "rgba(255,255,255,0.1)",
               border: "none",
               color: "#fff",
-              padding: "12px 20px",
-              borderRadius: "8px",
-              marginTop: "20px",
-              marginBottom: "20px",
+              padding: "clamp(10px, 2.5vw, 12px) clamp(16px, 4vw, 20px)",
+              borderRadius: "clamp(6px, 1.5vw, 8px)",
+              marginTop: "clamp(15px, 4vw, 20px)",
+              marginBottom: "clamp(15px, 4vw, 20px)",
               display: "inline-flex",
               alignItems: "center",
-              gap: "8px",
+              gap: "clamp(6px, 1.5vw, 8px)",
               cursor: "pointer",
-              fontSize: "1rem",
+              fontSize: "clamp(0.9rem, 2.5vw, 1rem)",
               fontWeight: "500",
-              transition: "all 0.2s"
+              transition: "all 0.2s",
+              minHeight: "44px"
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = "rgba(255,255,255,0.15)";
@@ -765,8 +881,9 @@ const DownloadPage = () => {
               e.currentTarget.style.background = "rgba(255,255,255,0.1)";
             }}
           >
-            <ArrowLeft size={20} />
-            Back to Anime
+            <ArrowLeft size={20} style={{ width: "clamp(16px, 4vw, 20px)", height: "clamp(16px, 4vw, 20px)" }} />
+            <span className="d-none d-sm-inline">Back to Anime</span>
+            <span className="d-inline d-sm-none">Back</span>
           </button>
 
           <TitleSection 
@@ -776,7 +893,12 @@ const DownloadPage = () => {
           />
 
           {!contentIsMovie && (
-            <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+            <div style={{ 
+              display: "flex", 
+              gap: "clamp(8px, 2vw, 10px)", 
+              marginBottom: "clamp(15px, 4vw, 20px)",
+              flexWrap: "wrap"
+            }}>
               <NavigationButton
                 onClick={handlePreviousEpisode}
                 disabled={episodes.findIndex((ep) => ep.id === currentEpisode?.id) === 0}
@@ -804,7 +926,7 @@ const DownloadPage = () => {
           )}
 
           {contentIsMovie && (
-            <div style={{ marginBottom: "20px" }}>
+            <div style={{ marginBottom: "clamp(15px, 4vw, 20px)" }}>
               <button
                 onClick={handleWatchClick}
                 style={{
@@ -812,18 +934,20 @@ const DownloadPage = () => {
                   background: "#e50914",
                   border: "none",
                   color: "#fff",
-                  padding: "15px",
-                  borderRadius: "10px",
-                  fontSize: "1rem",
+                  padding: "clamp(12px, 3vw, 15px)",
+                  borderRadius: "clamp(8px, 2vw, 10px)",
+                  fontSize: "clamp(0.95rem, 2.8vw, 1rem)",
                   fontWeight: "600",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: "8px",
-                  cursor: "pointer"
+                  gap: "clamp(6px, 1.5vw, 8px)",
+                  cursor: "pointer",
+                  minHeight: "50px",
+                  transition: "all 0.2s"
                 }}
               >
-                <Play size={20} />
+                <Play size={20} style={{ width: "clamp(16px, 4vw, 20px)", height: "clamp(16px, 4vw, 20px)" }} />
                 Watch Movie
               </button>
             </div>
