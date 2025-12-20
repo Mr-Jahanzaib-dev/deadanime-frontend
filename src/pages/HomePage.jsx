@@ -165,7 +165,7 @@ const HomePage = () => {
           alignItems: 'center', 
           justifyContent: 'center', 
           minHeight: 'calc(100vh - 80px)',
-          marginTop: isMobile ? '60px' : '80px',
+          marginTop: isMobile ? '20px' : '40px',
           padding: isMobile ? '20px' : '0'
         }}>
           <div style={{ textAlign: 'center' }}>
@@ -278,7 +278,7 @@ const HomePage = () => {
             aria-label="Featured Anime Carousel"
             className="hero-banner"
             style={{ 
-              marginTop: isMobile ? '60px' : '80px',
+              marginTop: isMobile ? '20px' : '40px',
               position: 'relative',
               height: isMobile ? '450px' : isTablet ? '500px' : '600px',
               overflow: 'hidden'

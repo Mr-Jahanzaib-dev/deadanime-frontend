@@ -53,6 +53,102 @@ const extractValidServer = (links) => {
   return null;
 };
 
+// ==================== EASTER EGG COMPONENT ====================
+const EasterEgg = ({ show, onClose }) => {
+  if (!show) return null;
+  
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0,0,0,0.95)',
+      zIndex: 9999,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      animation: 'fadeIn 0.3s ease-in'
+    }}>
+      <div style={{
+        textAlign: 'center',
+        animation: 'slideUp 0.5s ease-out'
+      }}>
+        <div style={{
+          fontSize: '80px',
+          marginBottom: '20px',
+          animation: 'bounce 1s infinite'
+        }}>
+          🎉
+        </div>
+        <h2 style={{
+          color: '#e50914',
+          fontSize: '2.5rem',
+          fontWeight: 'bold',
+          marginBottom: '10px',
+          textShadow: '0 0 20px rgba(229,9,20,0.5)'
+        }}>
+          You Found It!
+        </h2>
+        <p style={{
+          color: '#fff',
+          fontSize: '1.2rem',
+          marginBottom: '5px'
+        }}>
+          Konami Code Activated! 🎮
+        </p>
+        <p style={{
+          color: '#999',
+          fontSize: '0.9rem',
+          marginBottom: '30px'
+        }}>
+          Made with ❤️ by the dev team
+        </p>
+        <button
+          onClick={onClose}
+          style={{
+            background: '#e50914',
+            color: '#fff',
+            border: 'none',
+            padding: '12px 30px',
+            borderRadius: '25px',
+            fontSize: '1rem',
+            cursor: 'pointer',
+            fontWeight: '600',
+            boxShadow: '0 4px 15px rgba(229,9,20,0.4)'
+          }}
+        >
+          Awesome! 🚀
+        </button>
+      </div>
+      
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+          from { 
+            transform: translateY(30px);
+            opacity: 0;
+          }
+          to { 
+            transform: translateY(0);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-20px); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 // ==================== LOADING SCREEN ====================
 const LoadingScreen = () => {
   return (
@@ -358,9 +454,13 @@ const WatchPage = () => {
   const [videoError, setVideoError] = useState(false);
   const [contentIsMovie, setContentIsMovie] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showEasterEgg, setShowEasterEgg] = useState(false);
 
   const [episodesCache, setEpisodesCache] = useState({});
   const [streamingUrlCache, setStreamingUrlCache] = useState({});
+  
+  const konamiCode = useRef([]);
+  const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
 
   useEffect(() => {
     const checkMobile = () => {
@@ -371,25 +471,49 @@ const WatchPage = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // FIXED: Better fullscreen handling for mobile
   useEffect(() => {
-    // Prevent fullscreen change from reloading
     const handleFullscreenChange = (e) => {
-      e.stopPropagation();
+      // Only prevent default on actual fullscreen events, not navigation
+      if (document.fullscreenElement || document.webkitFullscreenElement || 
+          document.mozFullScreenElement || document.msFullscreenElement) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
     };
     
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-    document.addEventListener('msfullscreenchange', handleFullscreenChange);
+    // Use passive listeners to improve performance
+    const options = { passive: false, capture: true };
+    
+    document.addEventListener('fullscreenchange', handleFullscreenChange, options);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange, options);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange, options);
+    document.addEventListener('msfullscreenchange', handleFullscreenChange, options);
     
     return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
-      document.removeEventListener('msfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange, options);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange, options);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange, options);
+      document.removeEventListener('msfullscreenchange', handleFullscreenChange, options);
     };
   }, []);
 
+  // Easter Egg: Konami Code
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      konamiCode.current.push(e.key);
+      konamiCode.current = konamiCode.current.slice(-10);
+      
+      if (konamiCode.current.join('') === konamiSequence.join('')) {
+        setShowEasterEgg(true);
+        konamiCode.current = [];
+        console.log('🎮 KONAMI CODE ACTIVATED! You are a legend!');
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -428,12 +552,10 @@ const WatchPage = () => {
           setSeasons(allSeasons);
 
           if (allSeasons.length > 0) {
-            // Only set season and episodes if we're loading for the first time or changing anime
             let seasonToUse;
             let episodeData;
 
             if (episodeId) {
-              // If we have an episodeId, find which season it belongs to
               let foundSeason = null;
               for (const season of allSeasons) {
                 const eps = await getEpisodes(season.id);
@@ -446,7 +568,6 @@ const WatchPage = () => {
               }
               seasonToUse = foundSeason || allSeasons[0];
             } else {
-              // No episodeId, use first season
               seasonToUse = allSeasons[0];
             }
 
@@ -502,6 +623,7 @@ const WatchPage = () => {
 
     fetchData();
   }, [slug, episodeId]);
+
   const handleSeasonChange = async (season) => {
     setSelectedSeason(season);
     setLoading(true);
@@ -609,6 +731,9 @@ const WatchPage = () => {
   return (
     <div style={{ background: "#0a0a0a", minHeight: "100vh", color: "#fff" }}>
       <Navbar />
+      
+      {/* Easter Egg */}
+      <EasterEgg show={showEasterEgg} onClose={() => setShowEasterEgg(false)} />
 
       <div style={{ marginTop: isMobile ? "0" : "70px", paddingBottom: isMobile ? "0" : "40px" }}>
         {/* MOBILE VIEW */}
