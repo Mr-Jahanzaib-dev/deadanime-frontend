@@ -200,6 +200,64 @@ const LoadingScreen = () => {
 
 // ==================== VIDEO PLAYER ====================
 const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
+  const containerRef = useRef(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const fullscreenElement = document.fullscreenElement || 
+                                document.webkitFullscreenElement || 
+                                document.mozFullScreenElement || 
+                                document.msFullscreenElement;
+      setIsFullscreen(!!fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      const element = containerRef.current;
+      if (!element) return;
+
+      if (!isFullscreen) {
+        // Enter fullscreen
+        if (element.requestFullscreen) {
+          await element.requestFullscreen();
+        } else if (element.webkitRequestFullscreen) {
+          await element.webkitRequestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+          await element.mozRequestFullScreen();
+        } else if (element.msRequestFullscreen) {
+          await element.msRequestFullscreen();
+        }
+      } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          await document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          await document.msExitFullscreen();
+        }
+      }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+    }
+  };
+
   return (
   <div style={{
     background: "#000",
@@ -208,27 +266,81 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
     position: "relative",
     marginBottom: "20px",
   }}>
-    <div style={{
-      position: "relative",
-      paddingBottom: "56.25%",
-      height: 0,
-    }}>
+    <div 
+      ref={containerRef}
+      style={{
+        position: "relative",
+        paddingBottom: "56.25%",
+        height: 0,
+      }}
+    >
       {streamingUrl ? (
-       <iframe
-          src={streamingUrl}
-          title={isMovie ? "Movie Player" : "Anime Episode Player"}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            border: "none",
-          }}
-          allowFullScreen
-          allow="autoplay; fullscreen; picture-in-picture; accelerometer; gyroscope; encrypted-media"
-          onError={() => setVideoError(true)}
-        />
+        <>
+          <iframe
+            src={streamingUrl}
+            title={isMovie ? "Movie Player" : "Anime Episode Player"}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              border: "none",
+              pointerEvents: "auto"
+            }}
+            allow="autoplay; fullscreen; picture-in-picture; accelerometer; gyroscope; encrypted-media"
+            onError={() => setVideoError(true)}
+          />
+          {/* Custom Fullscreen Button Overlay */}
+          <button
+            onClick={toggleFullscreen}
+            onMouseDown={(e) => e.preventDefault()}
+            style={{
+              position: "absolute",
+              bottom: "15px",
+              right: "15px",
+              background: "rgba(0, 0, 0, 0.75)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+              color: "#fff",
+              padding: "10px 15px",
+              borderRadius: "6px",
+              cursor: "pointer",
+              fontSize: "0.9rem",
+              fontWeight: "500",
+              zIndex: 1000,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              transition: "all 0.2s ease",
+              pointerEvents: "auto"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(229, 9, 20, 0.9)";
+              e.currentTarget.style.transform = "scale(1.05)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(0, 0, 0, 0.75)";
+              e.currentTarget.style.transform = "scale(1)";
+            }}
+          >
+            {isFullscreen ? (
+              <>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/>
+                </svg>
+                Exit Fullscreen
+              </>
+            ) : (
+              <>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                </svg>
+                Fullscreen
+              </>
+            )}
+          </button>
+        </>
       ) : (
         <div style={{
           position: "absolute",
