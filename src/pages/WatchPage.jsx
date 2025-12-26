@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Play,
@@ -10,6 +10,7 @@ import {
   X,
   ChevronDown,
   Film,
+  AlertCircle,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -66,7 +67,6 @@ const LoadingScreen = () => {
       marginTop: "80px",
     }}>
       <div style={{ textAlign: "center", position: "relative" }}>
-        {/* Outer rotating ring */}
         <div style={{
           width: "120px",
           height: "120px",
@@ -107,7 +107,6 @@ const LoadingScreen = () => {
             animation: "rotate 0.8s linear infinite"
           }} />
           
-          {/* Center play icon - positioned absolutely within the rings */}
           <div style={{
             position: "absolute",
             top: "50%",
@@ -119,7 +118,6 @@ const LoadingScreen = () => {
           </div>
         </div>
         
-        {/* Loading text with dots animation */}
         <p style={{ 
           marginTop: "30px", 
           color: "#999",
@@ -130,7 +128,6 @@ const LoadingScreen = () => {
           LOADING<span style={{ animation: "dots 1.5s steps(4, end) infinite" }}>...</span>
         </p>
         
-        {/* Animated bars */}
         <div style={{
           display: "flex",
           gap: "8px",
@@ -153,7 +150,6 @@ const LoadingScreen = () => {
         </div>
       </div>
       
-      {/* CSS Animations */}
       <style>{`
         @keyframes rotate {
           0% { transform: rotate(0deg); }
@@ -200,6 +196,19 @@ const LoadingScreen = () => {
 
 // ==================== VIDEO PLAYER ====================
 const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
+  const iframeRef = useRef(null);
+  const [loadTimeout, setLoadTimeout] = useState(false);
+
+  useEffect(() => {
+    if (streamingUrl) {
+      const timer = setTimeout(() => {
+        setLoadTimeout(true);
+      }, 15000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [streamingUrl]);
+
   return (
   <div style={{
     background: "#000",
@@ -216,21 +225,50 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
       }}
     >
       {streamingUrl ? (
-        <iframe
-          src={streamingUrl}
-          title={isMovie ? "Movie Player" : "Anime Episode Player"}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            border: "none",
-          }}
-          allow="autoplay; fullscreen; picture-in-picture; accelerometer; gyroscope; encrypted-media"
-          allowFullScreen
-          onError={() => setVideoError(true)}
-        />
+        <>
+          <iframe
+            ref={iframeRef}
+            src={streamingUrl}
+            title={isMovie ? "Movie Player" : "Anime Episode Player"}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              border: "none",
+            }}
+            allow="autoplay *; fullscreen *; picture-in-picture *; accelerometer *; gyroscope *; encrypted-media *; clipboard-write"
+            allowFullScreen={true}
+            webkitallowfullscreen="true"
+            mozallowfullscreen="true"
+            scrolling="no"
+            frameBorder="0"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
+          />
+          {loadTimeout && !videoError && (
+            <div style={{
+              position: "absolute",
+              bottom: "10px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              background: "rgba(0,0,0,0.8)",
+              color: "#fbbf24",
+              padding: "8px 16px",
+              borderRadius: "4px",
+              fontSize: "0.85rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              zIndex: 10
+            }}>
+              <AlertCircle size={16} />
+              Video is loading slowly. Please wait...
+            </div>
+          )}
+        </>
       ) : (
         <div style={{
           position: "absolute",
@@ -245,24 +283,32 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
           flexDirection: "column"
         }}>
           {videoError ? (
-            <div style={{ textAlign: "center", color: "#999" }}>
-              <Play size={60} style={{ marginBottom: "15px", opacity: 0.5 }} />
-              <p style={{ fontSize: "1.1rem", marginBottom: "8px" }}>Video not available</p>
-              <p style={{ fontSize: "0.85rem", color: "#666" }}>Unable to load streaming source</p>
-              <button
-                onClick={() => window.location.reload()}
-                style={{
-                  background: "#e50914",
-                  color: "#fff",
-                  border: "none",
-                  padding: "8px 20px",
-                  borderRadius: "4px",
-                  marginTop: "15px",
-                  cursor: "pointer"
-                }}
-              >
-                Retry
-              </button>
+            <div style={{ textAlign: "center", color: "#999", padding: "20px" }}>
+              <AlertCircle size={60} style={{ marginBottom: "15px", opacity: 0.5, color: "#ef4444" }} />
+              <p style={{ fontSize: "1.1rem", marginBottom: "8px", color: "#fff" }}>Video Source Unavailable</p>
+              <p style={{ fontSize: "0.85rem", color: "#999", marginBottom: "15px", maxWidth: "300px" }}>
+                The streaming server is experiencing issues. This is not a problem with the player.
+              </p>
+              <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+                <button
+                  onClick={() => window.location.reload()}
+                  style={{
+                    background: "#e50914",
+                    color: "#fff",
+                    border: "none",
+                    padding: "10px 20px",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "0.85rem",
+                    fontWeight: "500"
+                  }}
+                >
+                  Retry Loading
+                </button>
+              </div>
+              <p style={{ fontSize: "0.75rem", color: "#666", marginTop: "15px" }}>
+                Error: Backend streaming source not responding
+              </p>
             </div>
           ) : (
             <div style={{ textAlign: "center", color: "#999" }}>
@@ -272,7 +318,6 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
                 margin: "0 auto 15px",
                 position: "relative"
               }}>
-                {/* Spinning rings */}
                 <div style={{
                   position: "absolute",
                   width: "100%",
@@ -295,7 +340,6 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
                   borderRadius: "50%",
                   animation: "rotateReverse 0.8s linear infinite"
                 }} />
-                {/* Center play icon */}
                 <div style={{
                   position: "absolute",
                   top: "50%",
@@ -306,9 +350,8 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
                   <Play size={20} fill="#e50914" color="#e50914" />
                 </div>
               </div>
-              <p>Loading video...</p>
+              <p>Loading video source...</p>
               
-              {/* CSS Animations for video player loading */}
               <style>{`
                 @keyframes rotate {
                   0% { transform: rotate(0deg); }
@@ -339,6 +382,7 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
   </div>
   );
 };
+
 // ==================== MAIN WATCH PAGE ====================
 const WatchPage = () => {
   const { slug, episodeId } = useParams();
@@ -396,8 +440,11 @@ const WatchPage = () => {
             const movieLinks = await getMovieLinks(slug);
             const url = extractValidServer(movieLinks);
             if (url) {
-              setStreamingUrl(url);
+              const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
+              console.log('Movie streaming URL:', cleanUrl);
+              setStreamingUrl(cleanUrl);
             } else {
+              console.error('No valid movie URL found');
               setVideoError(true);
             }
           } catch (error) {
@@ -459,12 +506,15 @@ const WatchPage = () => {
                 const links = await getEpisodeLinks(episode.id);
                 const url = extractValidServer(links);
                 if (url) {
-                  setStreamingUrl(url);
+                  const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
+                  console.log('Episode streaming URL:', cleanUrl);
+                  setStreamingUrl(cleanUrl);
                   setStreamingUrlCache(prev => ({
                     ...prev,
-                    [episode.id]: url
+                    [episode.id]: cleanUrl
                   }));
                 } else {
+                  console.error('No valid episode URL found');
                   setVideoError(true);
                 }
               }
@@ -481,7 +531,6 @@ const WatchPage = () => {
 
     fetchData();
   }, [slug, episodeId]);
-
   const handleSeasonChange = async (season) => {
     setSelectedSeason(season);
     setLoading(true);
@@ -523,12 +572,15 @@ const WatchPage = () => {
         const links = await getEpisodeLinks(episode.id);
         const url = extractValidServer(links);
         if (url) {
-          setStreamingUrl(url);
+          const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
+          console.log('Selected episode URL:', cleanUrl);
+          setStreamingUrl(cleanUrl);
           setStreamingUrlCache(prev => ({
             ...prev,
-            [episode.id]: url
+            [episode.id]: cleanUrl
           }));
         } else {
+          console.error('No valid URL for episode:', episode.id);
           setVideoError(true);
         }
       }
@@ -594,7 +646,6 @@ const WatchPage = () => {
         {/* MOBILE VIEW */}
         {isMobile ? (
           <div style={{ width: "100%", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-            {/* Video Player - Full Width Mobile */}
             <div style={{ 
               width: "100%", 
               background: "#000", 
@@ -608,7 +659,7 @@ const WatchPage = () => {
                 setVideoError={setVideoError}
               />
             </div>
-            {/* Player Controls - Mobile */}
+            
             <div style={{
               background: "#141414",
               padding: "15px",
@@ -755,10 +806,8 @@ const WatchPage = () => {
               </div>
             </div>
 
-            {/* Content Info - Mobile */}
             <div style={{ flex: 1, overflowY: "auto", background: "#0a0a0a" }}>
               <div style={{ padding: "20px" }}>
-                {/* Title */}
                 <div style={{ marginBottom: "15px" }}>
                   <h1 style={{ 
                     fontSize: "1.3rem", 
@@ -789,17 +838,11 @@ const WatchPage = () => {
                       gap: "4px"
                     }}>
                       <Play size={12} fill="#fff" />
-                      8.6
+                      {animeData?.rating || "N/A"}
                     </span>
-                    <span>2016</span>
-                    <span>|</span>
-                    <span>United States</span>
-                    <span>|</span>
-                    <span>1 subtitles</span>
                   </div>
                 </div>
 
-                {/* Resources Section - Mobile */}
                 <div style={{
                   background: "rgba(255,255,255,0.05)",
                   borderRadius: "8px",
@@ -817,7 +860,7 @@ const WatchPage = () => {
                         Resources
                       </h3>
                       <p style={{ fontSize: "0.75rem", color: "#999", margin: 0 }}>
-                        Source: vegamovies.pet | By Mbale...
+                        Source: vegamovies.pet
                       </p>
                     </div>
                     {!contentIsMovie && seasons.length > 1 && (
@@ -846,7 +889,6 @@ const WatchPage = () => {
                     )}
                   </div>
 
-                  {/* Episodes Grid - Mobile */}
                   {!contentIsMovie && (
                     <div style={{
                       display: "grid",
@@ -887,7 +929,6 @@ const WatchPage = () => {
                   )}
                 </div>
 
-                {/* Overview - Mobile */}
                 <div style={{
                   background: "rgba(255,255,255,0.05)",
                   borderRadius: "8px",
@@ -902,7 +943,6 @@ const WatchPage = () => {
                   </p>
                 </div>
 
-                {/* Related Content - Mobile */}
                 <div>
                   <h3 style={{ fontSize: "1rem", fontWeight: "600", marginBottom: "15px", color: "#e50914" }}>
                     More To Watch
@@ -927,13 +967,9 @@ const WatchPage = () => {
             </div>
           </div>
         ) : (
-          /* DESKTOP VIEW */
           <div style={{ maxWidth: "1600px", margin: "0 auto", padding: "0 20px" }}>
-            {/* Video Player and Episodes Container */}
             <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-              {/* Main Content - Left Side */}
               <div style={{ flex: "1 1 800px", minWidth: 0 }}>
-                {/* Video Player */}
                 <VideoPlayer
                   streamingUrl={streamingUrl}
                   videoError={videoError}
@@ -941,7 +977,6 @@ const WatchPage = () => {
                   setVideoError={setVideoError}
                 />
 
-                {/* Title and Source Info */}
                 <div style={{ marginBottom: "15px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                     <h1 style={{ fontSize: "1.4rem", fontWeight: "600", margin: 0, color: "#fff" }}>
@@ -968,11 +1003,10 @@ const WatchPage = () => {
                     </button>
                   </div>
                   <p style={{ fontSize: "0.85rem", color: "#999", margin: 0 }}>
-                    Source: vegamovies.pet | By Mbalenhle Mavimbela
+                    Source: vegamovies.pet
                   </p>
                 </div>
 
-                {/* Overview Section */}
                 <div style={{
                   background: "rgba(255,255,255,0.05)",
                   borderRadius: "6px",
@@ -988,7 +1022,6 @@ const WatchPage = () => {
                 </div>
               </div>
 
-              {/* Right Sidebar - Resources */}
               <div style={{ flex: "0 0 320px", minWidth: "280px" }}>
                 <div style={{
                   background: "rgba(255,255,255,0.05)",
@@ -1001,7 +1034,6 @@ const WatchPage = () => {
                     Resources
                   </h3>
 
-                  {/* Season Tabs - Only for Series */}
                   {!contentIsMovie && seasons.length > 1 && (
                     <div style={{ marginBottom: "15px" }}>
                       <div style={{
@@ -1032,7 +1064,6 @@ const WatchPage = () => {
                     </div>
                   )}
 
-                  {/* Episodes Grid - Only for Series */}
                   {!contentIsMovie && (
                     <div>
                       <div style={{
@@ -1078,7 +1109,6 @@ const WatchPage = () => {
                         ))}
                       </div>
 
-                      {/* Navigation Arrows */}
                       <div style={{
                         display: "flex",
                         gap: "10px",
@@ -1130,7 +1160,6 @@ const WatchPage = () => {
                     </div>
                   )}
 
-                  {/* Movie Badge */}
                   {contentIsMovie && (
                     <div style={{
                       background: "rgba(229, 9, 20, 0.15)",
@@ -1149,7 +1178,6 @@ const WatchPage = () => {
               </div>
             </div>
 
-            {/* Related Content */}
             <div style={{ marginTop: "40px" }}>
               <div style={{
                 background: "rgba(255,255,255,0.05)",
