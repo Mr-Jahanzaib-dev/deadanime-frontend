@@ -27,30 +27,88 @@ import {
 // ==================== UTILITY FUNCTIONS ====================
 const isMovie = (type) => type?.toLowerCase() === 'movie';
 
-const extractValidServer = (links) => {
+// ✅ FIXED: Enhanced URL extraction with better validation
+const extractValidServer = (linksData) => {
+  console.log('🔍 Extracting URL from:', linksData);
+  
+  if (!linksData) {
+    console.warn('⚠️ No links data provided');
+    return null;
+  }
+
+  // Check if response has hasValidLinks flag
+  if (linksData.hasValidLinks === false) {
+    console.warn('⚠️ API reported no valid links');
+    return null;
+  }
+
   let servers = [];
   
-  if (links && links.servers && Array.isArray(links.servers)) {
-    servers = links.servers;
-  } else if (links && links.links && Array.isArray(links.links)) {
-    servers = links.links;
-  } else if (Array.isArray(links)) {
-    servers = links;
+  // Extract servers array from various possible structures
+  if (linksData.servers && Array.isArray(linksData.servers)) {
+    servers = linksData.servers;
+  } else if (linksData.links && Array.isArray(linksData.links)) {
+    servers = linksData.links;
+  } else if (Array.isArray(linksData)) {
+    servers = linksData;
+  } else if (linksData.data && Array.isArray(linksData.data)) {
+    servers = linksData.data;
   }
-  
-  if (servers.length > 0) {
-    const validServer = servers.find((s) => {
-      return (s.watch && s.watch.trim() !== "") ||
-             (s.url && s.url.trim() !== "") ||
-             (s.embed && s.embed.trim() !== "") ||
-             (s.link && s.link.trim() !== "");
-    });
+
+  console.log('📡 Found servers:', servers.length);
+
+  if (servers.length === 0) {
+    console.warn('⚠️ No servers found in response');
+    return null;
+  }
+
+  // ✅ FIXED: Try to find a valid server with better validation
+  for (let i = 0; i < servers.length; i++) {
+    const server = servers[i];
     
-    if (validServer) {
-      return (validServer.watch || validServer.url || validServer.embed || validServer.link).trim();
+    // Try different possible URL keys
+    const possibleUrls = [
+      server.watch,
+      server.url,
+      server.embed,
+      server.link,
+      server.iframe,
+      server.stream,
+      server.source
+    ];
+
+    for (let urlCandidate of possibleUrls) {
+      if (urlCandidate && typeof urlCandidate === 'string') {
+        let cleanUrl = urlCandidate.trim();
+        
+        // Skip empty or placeholder URLs
+        if (cleanUrl === '' || cleanUrl === 'null' || cleanUrl === 'undefined') {
+          continue;
+        }
+        
+        // Add protocol if missing
+        if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+          cleanUrl = 'https://' + cleanUrl;
+        }
+        
+        // Validate URL
+        try {
+          const urlObj = new URL(cleanUrl);
+          
+          // Check if it has a valid hostname
+          if (urlObj.hostname && urlObj.hostname.length > 3) {
+            console.log('✅ Found valid URL:', cleanUrl);
+            return cleanUrl;
+          }
+        } catch (e) {
+          // Invalid URL, continue to next
+          continue;
+        }
+      }
     }
   }
-  
+
+  console.warn('⚠️ No valid streaming URL found in any server');
   return null;
 };
 
@@ -198,9 +256,13 @@ const LoadingScreen = () => {
 const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
   const iframeRef = useRef(null);
   const [loadTimeout, setLoadTimeout] = useState(false);
+  const [iframeError, setIframeError] = useState(false);
 
   useEffect(() => {
     if (streamingUrl) {
+      setLoadTimeout(false);
+      setIframeError(false);
+      
       const timer = setTimeout(() => {
         setLoadTimeout(true);
       }, 15000);
@@ -208,6 +270,13 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
       return () => clearTimeout(timer);
     }
   }, [streamingUrl]);
+
+  // ✅ FIXED: Handle iframe load errors
+  const handleIframeError = () => {
+    console.error('❌ Iframe failed to load');
+    setIframeError(true);
+    setVideoError(true);
+  };
 
   return (
   <div style={{
@@ -238,8 +307,8 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
               height: "100%",
               border: "none",
             }}
-            allow="autoplay *; fullscreen *; picture-in-picture *; accelerometer *; gyroscope *; encrypted-media *; clipboard-write"
-            allowFullScreen={true}
+            allow="autoplay; fullscreen; picture-in-picture; accelerometer; gyroscope; encrypted-media; clipboard-write"
+            allowFullScreen
             webkitallowfullscreen="true"
             mozallowfullscreen="true"
             scrolling="no"
@@ -247,8 +316,9 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
             sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
+            onError={handleIframeError}
           />
-          {loadTimeout && !videoError && (
+          {loadTimeout && !videoError && !iframeError && (
             <div style={{
               position: "absolute",
               bottom: "10px",
@@ -282,7 +352,7 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
           background: "#000",
           flexDirection: "column"
         }}>
-          {videoError ? (
+          {videoError || iframeError ? (
             <div style={{ textAlign: "center", color: "#999", padding: "20px" }}>
               <AlertCircle size={60} style={{ marginBottom: "15px", opacity: 0.5, color: "#ef4444" }} />
               <p style={{ fontSize: "1.1rem", marginBottom: "8px", color: "#fff" }}>Video Source Unavailable</p>
@@ -382,7 +452,6 @@ const VideoPlayer = ({ streamingUrl, videoError, isMovie, setVideoError }) => {
   </div>
   );
 };
-
 // ==================== MAIN WATCH PAGE ====================
 const WatchPage = () => {
   const { slug, episodeId } = useParams();
@@ -416,6 +485,7 @@ const WatchPage = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // ✅ FIXED: Enhanced data fetching with better error handling
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -424,9 +494,20 @@ const WatchPage = () => {
       window.scrollTo({ top: 0, behavior: "smooth" });
 
       try {
+        console.log('🎬 Fetching data for:', slug, episodeId);
+        
         const anime = await getAnimeInfo(slug);
+        if (!anime) {
+          console.error('❌ Failed to fetch anime info');
+          setVideoError(true);
+          setLoading(false);
+          return;
+        }
+        
         setAnimeData(anime);
+        console.log('✅ Anime data loaded:', anime.name);
 
+        // Fetch related anime
         const related = await getPopularAnime("month", 1, 24);
         const other = await getPopularAnime("week", 1, 30);
         setRelatedAnime(related.posts || []);
@@ -436,38 +517,47 @@ const WatchPage = () => {
         setContentIsMovie(movieType);
 
         if (movieType) {
+          console.log('🎬 This is a movie, fetching movie links...');
           try {
             const movieLinks = await getMovieLinks(slug);
+            console.log('📡 Movie links response:', movieLinks);
+            
             const url = extractValidServer(movieLinks);
+            
             if (url) {
-              const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
-              console.log('Movie streaming URL:', cleanUrl);
-              setStreamingUrl(cleanUrl);
+              console.log('✅ Movie URL extracted:', url);
+              setStreamingUrl(url);
             } else {
-              console.error('No valid movie URL found');
+              console.error('❌ No valid movie URL found');
               setVideoError(true);
             }
           } catch (error) {
-            console.error("Error fetching movie links:", error);
+            console.error("❌ Error fetching movie links:", error);
             setVideoError(true);
           }
         } else {
+          console.log('📺 This is a series, fetching seasons...');
           const seasonData = await getSeasonInfo(anime.id);
           const allSeasons = seasonData.seasons || [];
           setSeasons(allSeasons);
+          console.log('✅ Seasons loaded:', allSeasons.length);
 
           if (allSeasons.length > 0) {
             let seasonToUse;
             let episodeData;
 
+            // If episodeId is provided, find which season it belongs to
             if (episodeId) {
+              console.log('🔍 Looking for episode:', episodeId);
               let foundSeason = null;
+              
               for (const season of allSeasons) {
                 const eps = await getEpisodes(season.id);
                 const foundEpisode = eps.find((ep) => ep.id === parseInt(episodeId));
                 if (foundEpisode) {
                   foundSeason = season;
                   episodeData = eps;
+                  console.log('✅ Found episode in season:', season.num);
                   break;
                 }
               }
@@ -477,10 +567,13 @@ const WatchPage = () => {
             }
 
             setSelectedSeason(seasonToUse);
+            console.log('✅ Selected season:', seasonToUse.num);
 
+            // Fetch episodes for selected season
             if (!episodeData) {
               if (episodesCache[seasonToUse.id]) {
                 episodeData = episodesCache[seasonToUse.id];
+                console.log('💾 Using cached episodes');
               } else {
                 episodeData = await getEpisodes(seasonToUse.id);
                 episodeData = episodeData || [];
@@ -488,41 +581,54 @@ const WatchPage = () => {
                   ...prev,
                   [seasonToUse.id]: episodeData
                 }));
+                console.log('✅ Episodes loaded:', episodeData.length);
               }
             }
 
             setEpisodes(episodeData);
 
+            // Select the episode
             const episode = episodeId
               ? episodeData.find((ep) => ep.id === parseInt(episodeId))
               : episodeData[0];
 
             if (episode) {
               setCurrentEpisode(episode);
+              console.log('✅ Current episode:', episode.number);
 
+              // Fetch streaming URL
               if (streamingUrlCache[episode.id]) {
+                console.log('💾 Using cached URL for episode:', episode.id);
                 setStreamingUrl(streamingUrlCache[episode.id]);
               } else {
+                console.log('📡 Fetching episode links for:', episode.id);
                 const links = await getEpisodeLinks(episode.id);
+                console.log('📡 Episode links response:', links);
+                
                 const url = extractValidServer(links);
+                
                 if (url) {
-                  const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
-                  console.log('Episode streaming URL:', cleanUrl);
-                  setStreamingUrl(cleanUrl);
+                  console.log('✅ Episode URL extracted:', url);
+                  setStreamingUrl(url);
                   setStreamingUrlCache(prev => ({
                     ...prev,
-                    [episode.id]: cleanUrl
+                    [episode.id]: url
                   }));
                 } else {
-                  console.error('No valid episode URL found');
+                  console.error('❌ No valid episode URL found');
                   setVideoError(true);
                 }
               }
+            } else {
+              console.error('❌ Episode not found');
+              setVideoError(true);
             }
+          } else {
+            console.warn('⚠️ No seasons available');
           }
         }
       } catch (error) {
-        console.error("Error fetching watch data:", error);
+        console.error("❌ Error fetching watch data:", error);
         setVideoError(true);
       }
 
@@ -531,17 +637,23 @@ const WatchPage = () => {
 
     fetchData();
   }, [slug, episodeId]);
+
+  // ✅ FIXED: Enhanced season change handler
   const handleSeasonChange = async (season) => {
     setSelectedSeason(season);
     setLoading(true);
 
     try {
+      console.log('🔄 Changing to season:', season.num);
+      
       if (episodesCache[season.id]) {
+        console.log('💾 Using cached episodes for season:', season.num);
         setEpisodes(episodesCache[season.id]);
         if (episodesCache[season.id].length > 0) {
           handleEpisodeSelect(episodesCache[season.id][0]);
         }
       } else {
+        console.log('📡 Fetching episodes for season:', season.num);
         const episodeData = await getEpisodes(season.id);
         const episodesArray = episodeData || [];
         setEpisodes(episodesArray);
@@ -549,45 +661,56 @@ const WatchPage = () => {
           ...prev,
           [season.id]: episodesArray
         }));
+        console.log('✅ Episodes loaded for season:', episodesArray.length);
+        
         if (episodesArray.length > 0) {
           handleEpisodeSelect(episodesArray[0]);
         }
       }
     } catch (error) {
-      console.error("Error fetching episodes:", error);
+      console.error("❌ Error fetching episodes:", error);
+      setVideoError(true);
     }
 
     setLoading(false);
   };
 
+  // ✅ FIXED: Enhanced episode selection handler
   const handleEpisodeSelect = async (episode) => {
     setCurrentEpisode(episode);
     setLoading(true);
     setVideoError(false);
 
     try {
+      console.log('🔄 Selecting episode:', episode.number);
+      
       if (streamingUrlCache[episode.id]) {
+        console.log('💾 Using cached URL for episode:', episode.id);
         setStreamingUrl(streamingUrlCache[episode.id]);
       } else {
+        console.log('📡 Fetching links for episode:', episode.id);
         const links = await getEpisodeLinks(episode.id);
+        console.log('📡 Links response:', links);
+        
         const url = extractValidServer(links);
+        
         if (url) {
-          const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
-          console.log('Selected episode URL:', cleanUrl);
-          setStreamingUrl(cleanUrl);
+          console.log('✅ URL extracted:', url);
+          setStreamingUrl(url);
           setStreamingUrlCache(prev => ({
             ...prev,
-            [episode.id]: cleanUrl
+            [episode.id]: url
           }));
         } else {
-          console.error('No valid URL for episode:', episode.id);
+          console.error('❌ No valid URL for episode:', episode.id);
           setVideoError(true);
         }
       }
+      
       navigate(`/watch/${slug}/${episode.id}`, { replace: true });
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
-      console.error("Error fetching streaming URL:", error);
+      console.error("❌ Error fetching streaming URL:", error);
       setVideoError(true);
     }
 
@@ -643,8 +766,9 @@ const WatchPage = () => {
       <Navbar />
 
       <div style={{ marginTop: isMobile ? "0" : "70px", paddingBottom: isMobile ? "0" : "40px" }}>
-        {/* MOBILE VIEW */}
+        {/* ✅ FIXED: Added proper ternary operator with else */}
         {isMobile ? (
+          /* MOBILE VIEW */
           <div style={{ width: "100%", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
             <div style={{ 
               width: "100%", 
@@ -967,6 +1091,7 @@ const WatchPage = () => {
             </div>
           </div>
         ) : (
+          /* DESKTOP VIEW */
           <div style={{ maxWidth: "1600px", margin: "0 auto", padding: "0 20px" }}>
             <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
               <div style={{ flex: "1 1 800px", minWidth: 0 }}>

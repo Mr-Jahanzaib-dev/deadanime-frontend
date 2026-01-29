@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
-  timeout: 20000,
+  timeout: 25000, // ✅ FIXED: Increased to 25 seconds (5 second buffer over server timeout)
   headers: {
     'Content-Type': 'application/json',
   },
@@ -85,13 +85,20 @@ export const getEpisodes = async (seasonId) => {
   }
 };
 
+// ✅ FIXED: Error response now matches expected structure
 export const getEpisodeLinks = async (episodeId) => {
   try {
     const response = await api.get(`/episode/${episodeId}/links`);
     return response.data;
   } catch (error) {
     console.error('Get episode links error:', error);
-    return { links: [] };
+    // ✅ FIXED: Return structure that matches server response
+    return { 
+      servers: [], 
+      hasValidLinks: false,
+      total: 0,
+      error: error.message 
+    };
   }
 };
 
@@ -134,13 +141,20 @@ export const getMovies = async (page = 1, limit = 12) => {
   }
 };
 
+// ✅ FIXED: Error response now matches expected structure
 export const getMovieLinks = async (slug) => {
   try {
     const response = await api.get(`/movie/${slug}/links`);
     return response.data;
   } catch (error) {
     console.error('Get movie links error:', error);
-    return { links: [] };
+    // ✅ FIXED: Return structure that matches server response
+    return { 
+      servers: [], 
+      hasValidLinks: false,
+      total: 0,
+      error: error.message 
+    };
   }
 };
 
