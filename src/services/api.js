@@ -618,7 +618,7 @@ export const getApiStats = async () => {
 };
 
 // ==================== EXPORTS ====================
-export default {
+const api = {
   searchAnime,
   getAnimeInfo,
   getSeasonInfo,
@@ -638,3 +638,5 @@ export default {
   checkApiHealth,
   getApiStats,
 };
+
+export default api;
