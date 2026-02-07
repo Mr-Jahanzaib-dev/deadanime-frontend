@@ -1,13 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Play,
   ChevronLeft,
   ChevronRight,
   Download,
-  Share2,
-  List,
-  X,
   ChevronDown,
   Film,
   AlertCircle,
@@ -571,18 +568,13 @@ const WatchPage = () => {
 
             // Fetch episodes for selected season
             if (!episodeData) {
-              if (episodesCache[seasonToUse.id]) {
-                episodeData = episodesCache[seasonToUse.id];
-                console.log('💾 Using cached episodes');
-              } else {
-                episodeData = await getEpisodes(seasonToUse.id);
-                episodeData = episodeData || [];
-                setEpisodesCache(prev => ({
-                  ...prev,
-                  [seasonToUse.id]: episodeData
-                }));
-                console.log('✅ Episodes loaded:', episodeData.length);
-              }
+              episodeData = await getEpisodes(seasonToUse.id);
+              episodeData = episodeData || [];
+              setEpisodesCache(prev => ({
+                ...prev,
+                [seasonToUse.id]: episodeData
+              }));
+              console.log('✅ Episodes loaded:', episodeData.length);
             }
 
             setEpisodes(episodeData);
@@ -597,27 +589,22 @@ const WatchPage = () => {
               console.log('✅ Current episode:', episode.number);
 
               // Fetch streaming URL
-              if (streamingUrlCache[episode.id]) {
-                console.log('💾 Using cached URL for episode:', episode.id);
-                setStreamingUrl(streamingUrlCache[episode.id]);
+              console.log('📡 Fetching episode links for:', episode.id);
+              const links = await getEpisodeLinks(episode.id);
+              console.log('📡 Episode links response:', links);
+              
+              const url = extractValidServer(links);
+              
+              if (url) {
+                console.log('✅ Episode URL extracted:', url);
+                setStreamingUrl(url);
+                setStreamingUrlCache(prev => ({
+                  ...prev,
+                  [episode.id]: url
+                }));
               } else {
-                console.log('📡 Fetching episode links for:', episode.id);
-                const links = await getEpisodeLinks(episode.id);
-                console.log('📡 Episode links response:', links);
-                
-                const url = extractValidServer(links);
-                
-                if (url) {
-                  console.log('✅ Episode URL extracted:', url);
-                  setStreamingUrl(url);
-                  setStreamingUrlCache(prev => ({
-                    ...prev,
-                    [episode.id]: url
-                  }));
-                } else {
-                  console.error('❌ No valid episode URL found');
-                  setVideoError(true);
-                }
+                console.error('❌ No valid episode URL found');
+                setVideoError(true);
               }
             } else {
               console.error('❌ Episode not found');
@@ -636,6 +623,7 @@ const WatchPage = () => {
     };
 
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug, episodeId]);
 
   // ✅ FIXED: Enhanced season change handler
@@ -675,8 +663,8 @@ const WatchPage = () => {
     setLoading(false);
   };
 
-  // ✅ FIXED: Enhanced episode selection handler
-  const handleEpisodeSelect = async (episode) => {
+  // ✅ FIXED: Enhanced episode selection handler with useCallback
+  const handleEpisodeSelect = useCallback(async (episode) => {
     setCurrentEpisode(episode);
     setLoading(true);
     setVideoError(false);
@@ -715,7 +703,7 @@ const WatchPage = () => {
     }
 
     setLoading(false);
-  };
+  }, [navigate, slug, streamingUrlCache]);
 
   const handleNextEpisode = () => {
     if (contentIsMovie) return;
@@ -766,7 +754,6 @@ const WatchPage = () => {
       <Navbar />
 
       <div style={{ marginTop: isMobile ? "0" : "70px", paddingBottom: isMobile ? "0" : "40px" }}>
-        {/* ✅ FIXED: Added proper ternary operator with else */}
         {isMobile ? (
           /* MOBILE VIEW */
           <div style={{ width: "100%", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
