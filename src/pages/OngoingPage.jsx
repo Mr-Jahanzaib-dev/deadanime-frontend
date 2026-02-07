@@ -56,29 +56,7 @@ const OngoingPage = () => {
 
     fetchOngoingAnime();
   }, [currentPage, sortBy]);
-  // SEO: Dynamic meta tags
-  const generateMetaTags = () => {
-    const baseUrl = window.location.origin;
-    const topAnime = ongoingAnime.slice(0, 5);
-    const animeNames = topAnime.map(a => a.name).join(', ');
-    const featuredAnime = ongoingAnime[0] || {};
-    
-    const pageTitle = currentPage > 1 
-      ? `Ongoing Anime Series - Page ${currentPage} | ${siteName}`
-      : `Ongoing Anime Series - Watch Latest Episodes | ${siteName}`;
-    
-    const description = currentPage > 1
-      ? `Browse ongoing anime series - Page ${currentPage}. Watch latest episodes including ${animeNames}. Stream currently airing anime in HD quality.`
-      : `Watch ongoing anime series with latest episodes. Stream ${animeNames} and more currently airing shows in HD quality with English subs & dubs.`;
-    
-    const keywords = `ongoing anime, airing anime, latest anime episodes, ${animeNames}, currently airing, new anime episodes, anime series 2024, anime streaming, watch anime online`;
-    
-    const ogImage = featuredAnime.image?.backdrop 
-      ? `https://image.tmdb.org/t/p/original${featuredAnime.image.backdrop}`
-      : `${baseUrl}/og-ongoing.jpg`;
-    
-    return { pageTitle, description, keywords, baseUrl, ogImage };
-  };
+const baseUrl = window.location.origin;
 
   if (loading) {
     return (
