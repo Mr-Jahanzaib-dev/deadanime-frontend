@@ -354,7 +354,7 @@ const AnimeHeader = ({ animeData, isMobile = false }) => {
 };
 
 // ==================== EPISODE CARD COMPONENT ====================
-const EpisodeCard = ({ episode, onWatch, onDownload, isMobile = false }) => {
+const EpisodeCard = ({ episode, slug, season, onWatch, onDownload, isMobile = false }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -415,7 +415,8 @@ const EpisodeCard = ({ episode, onWatch, onDownload, isMobile = false }) => {
             <button 
               onClick={(e) => {
                 e.stopPropagation();
-                onWatch();
+                // Pass slug, season, and episode number to watch
+                onWatch(slug, season, episode.number);
               }}
               style={{
                 background: '#e50914',
@@ -440,7 +441,7 @@ const EpisodeCard = ({ episode, onWatch, onDownload, isMobile = false }) => {
             <button 
               onClick={(e) => {
                 e.stopPropagation();
-                onDownload();
+                onDownload(slug, season, episode.number);
               }}
               style={{
                 background: '#22c55e',
@@ -466,8 +467,9 @@ const EpisodeCard = ({ episode, onWatch, onDownload, isMobile = false }) => {
     </div>
   );
 };
+
 // ==================== EPISODE LIST COMPONENT ====================
-const EpisodeList = ({ episodes, animeSlug, onNavigate, isMovieContent, isMobile = false }) => {
+const EpisodeList = ({ episodes, slug, season, onNavigate, isMovieContent, isMobile = false }) => {
   const [showAll, setShowAll] = useState(false);
   const displayedEpisodes = showAll ? episodes : episodes.slice(0, 6);
 
@@ -525,10 +527,12 @@ const EpisodeList = ({ episodes, animeSlug, onNavigate, isMovieContent, isMobile
       }}>
         {displayedEpisodes.map((episode) => (
           <EpisodeCard 
-            key={episode.id} 
+            key={episode.id || episode.number} 
             episode={episode}
-            onWatch={() => onNavigate(`/watch/${animeSlug}/${episode.id}`)}
-            onDownload={() => onNavigate(`/download/${animeSlug}/${episode.id}`)}
+            slug={slug}
+            season={season}
+            onWatch={(slug, season, episodeNum) => onNavigate(`/watch/${slug}/${season}/${episodeNum}`)}
+            onDownload={(slug, season, episodeNum) => onNavigate(`/download/${slug}/${season}/${episodeNum}`)}
             isMobile={isMobile}
           />
         ))}
@@ -695,11 +699,12 @@ const ContentSection = ({ title, children, isMobile = false, customStyles = {} }
 
 // ==================== MAIN COMPONENT ====================
 const AnimeDetailPage = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // This is the SLUG from the URL
   const navigate = useNavigate();
   const [animeData, setAnimeData] = useState(null);
   const [seasons, setSeasons] = useState([]);
   const [episodes, setEpisodes] = useState([]);
+  const [currentSeason, setCurrentSeason] = useState(1);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('info');
   const [isMobile, setIsMobile] = useState(false);
@@ -722,17 +727,26 @@ const AnimeDetailPage = () => {
       setLoading(true);
       
       try {
+        console.log('Fetching anime info for slug:', id);
+        
+        // Get anime info using slug (id from URL is actually the slug)
         const anime = await getAnimeInfo(id);
         
         if (anime) {
+          console.log('Anime data received:', anime);
           setAnimeData(anime);
           
-          const seasonData = await getSeasonInfo(anime.id);
+          // Get season info
+          const seasonData = await getSeasonInfo(id);
+          console.log('Season data:', seasonData);
           setSeasons(seasonData.seasons || []);
           
+          // Get episodes for season 1 by default
           if (seasonData.seasons && seasonData.seasons.length > 0) {
-            const episodeData = await getEpisodes(seasonData.seasons[0].id);
+            const episodeData = await getEpisodes(id, 1);
+            console.log('Episode data:', episodeData);
             setEpisodes(episodeData || []);
+            setCurrentSeason(1);
           }
         }
       } catch (error) {
@@ -751,9 +765,11 @@ const AnimeDetailPage = () => {
       const contentIsMovie = isMovie(animeData?.type);
       
       if (contentIsMovie) {
+        // For movies: /watch/movie-slug or /download/movie-slug
         navigate(`/${type}/${slug}`);
       } else if (episodes.length > 0) {
-        navigate(`/${type}/${slug}/${episodes[0].id}`);
+        // For series: /watch/slug/season/episode
+        navigate(`/${type}/${slug}/${currentSeason}/${episodes[0].number}`);
       } else {
         alert(`No episodes available to ${type}`);
       }
@@ -942,7 +958,8 @@ const AnimeDetailPage = () => {
                   {activeTab === 'episodes' && (
                     <EpisodeList 
                       episodes={episodes} 
-                      animeSlug={animeData.slug || id} 
+                      slug={animeData.slug || id}
+                      season={currentSeason}
                       onNavigate={navigate}
                       isMovieContent={isMovie(animeData?.type)}
                       isMobile={isMobile}

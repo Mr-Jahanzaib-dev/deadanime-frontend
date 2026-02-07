@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Play, TrendingUp, Star, ChevronRight, ChevronLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import AnimeCard from '../components/AnimeCard';
 import { getPopularAnime, getSeries } from '../services/api';
 
 const HomePage = () => {
+  const navigate = useNavigate();
   const [popularAnime, setPopularAnime] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -66,7 +67,7 @@ const HomePage = () => {
 
     const interval = setInterval(() => {
       nextSlide();
-    }, isMobile ? 4000 : 2000); // Slower on mobile for better UX
+    }, isMobile ? 4000 : 5000); // Slower on mobile for better UX
 
     return () => clearInterval(interval);
   }, [popularAnime, currentSlide, isMobile]);
@@ -92,6 +93,42 @@ const HomePage = () => {
     setIsTransitioning(true);
     setCurrentSlide(index);
     setTimeout(() => setIsTransitioning(false), 500);
+  };
+
+  // Helper to determine if anime is a movie
+  const isMovie = (type) => type?.toLowerCase() === 'movie';
+
+  // Helper to handle watch click
+  const handleWatchClick = (anime) => {
+    const slug = anime.slug || anime.id;
+    
+    if (isMovie(anime.type)) {
+      // Movies go directly to watch page
+      navigate(`/watch/${slug}`);
+    } else {
+      // Series go to detail page first (or could go to first episode)
+      navigate(`/anime/${slug}`);
+    }
+  };
+
+  // Helper to get image URL
+  const getImageUrl = (path, size = 'w500') => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    if (path.startsWith('/')) return `https://image.tmdb.org/t/p/${size}${path}`;
+    return `https://dbase.deaddrive.icu/${path}`;
+  };
+
+  // Helper to get backdrop image URL
+  const getBackdropUrl = (anime) => {
+    const backdrop = anime.image?.backdrop || anime.backdrop || anime.image?.poster || anime.poster;
+    return getImageUrl(backdrop, 'original');
+  };
+
+  // Helper to get poster image URL
+  const getPosterUrl = (anime) => {
+    const poster = anime.image?.poster || anime.poster || anime.image;
+    return getImageUrl(poster, 'w500');
   };
 
   // SEO: Generate structured data for the page
@@ -125,7 +162,7 @@ const HomePage = () => {
             "@type": "TVSeries",
             "name": anime.name,
             "url": `${baseUrl}/anime/${anime.slug}`,
-            "image": anime.image?.poster ? `https://image.tmdb.org/t/p/w500${anime.image.poster}` : "",
+            "image": getPosterUrl(anime),
             "description": anime.overview,
             "aggregateRating": anime.rating ? {
               "@type": "AggregateRating",
@@ -305,8 +342,8 @@ const HomePage = () => {
                     opacity: currentSlide === index ? 1 : 0,
                     transition: 'opacity 0.5s ease-in-out',
                     background: isMobile
-                      ? `linear-gradient(to bottom, rgba(10,10,10,0.6) 0%, rgba(10,10,10,0.95) 70%), url(https://image.tmdb.org/t/p/original${anime.image?.backdrop})`
-                      : `linear-gradient(to right, rgba(10,10,10,0.95) 30%, rgba(10,10,10,0.3)), url(https://image.tmdb.org/t/p/original${anime.image?.backdrop})`,
+                      ? `linear-gradient(to bottom, rgba(10,10,10,0.6) 0%, rgba(10,10,10,0.95) 70%), url(${getBackdropUrl(anime)})`
+                      : `linear-gradient(to right, rgba(10,10,10,0.95) 30%, rgba(10,10,10,0.3)), url(${getBackdropUrl(anime)})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     pointerEvents: currentSlide === index ? 'auto' : 'none'
@@ -358,32 +395,34 @@ const HomePage = () => {
                         fontSize: isMobile ? '0.75rem' : '0.9rem',
                         animation: currentSlide === index ? 'fadeInUp 0.6s ease-out 0.2s both' : 'none'
                       }}>
-                        <span style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          background: '#e50914',
-                          padding: isMobile ? '4px 10px' : '6px 12px',
-                          borderRadius: '4px'
-                        }}>
-                          <Star size={isMobile ? 12 : 14} fill="#ffc107" color="#ffc107" />
-                          <span itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
-                            <meta itemProp="ratingValue" content={anime.rating} />
-                            <meta itemProp="bestRating" content="10" />
-                            {anime.rating}
+                        {anime.rating && (
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            background: '#e50914',
+                            padding: isMobile ? '4px 10px' : '6px 12px',
+                            borderRadius: '4px'
+                          }}>
+                            <Star size={isMobile ? 12 : 14} fill="#ffc107" color="#ffc107" />
+                            <span itemProp="aggregateRating" itemScope itemType="https://schema.org/AggregateRating">
+                              <meta itemProp="ratingValue" content={anime.rating} />
+                              <meta itemProp="bestRating" content="10" />
+                              {parseFloat(anime.rating).toFixed(1)}
+                            </span>
                           </span>
-                        </span>
+                        )}
                         <time itemProp="datePublished" dateTime={anime.release} style={{ color: '#999' }}>
                           {anime.year || (anime.release ? new Date(anime.release).getFullYear() : 'N/A')}
                         </time>
                         <span style={{ color: '#999' }}>{anime.type?.toUpperCase()}</span>
-                        {!isMobile && (
+                        {!isMobile && anime.episodes > 0 && (
                           <span itemProp="numberOfEpisodes" style={{ color: '#999' }}>
                             {anime.episodes} Episodes
                           </span>
                         )}
                       </div>
-                      {!isMobile && (
+                      {!isMobile && anime.overview && (
                         <p 
                           itemProp="description"
                           style={{ 
@@ -409,6 +448,7 @@ const HomePage = () => {
                         animation: currentSlide === index ? 'fadeInUp 0.6s ease-out 0.4s both' : 'none'
                       }}>
                         <button 
+                          onClick={() => handleWatchClick(anime)}
                           aria-label={`Watch ${anime.name} now`}
                           style={{ 
                             background: '#e50914', 
@@ -431,7 +471,7 @@ const HomePage = () => {
                           Watch Now
                         </button>
                         <Link 
-                          to={`/anime/${anime.slug}`}
+                          to={`/anime/${anime.slug || anime.id}`}
                           aria-label={`More information about ${anime.name}`}
                           style={{ 
                             background: 'rgba(255,255,255,0.1)',
@@ -461,10 +501,11 @@ const HomePage = () => {
                     </div>
                   </div>
                   <meta itemProp="url" content={`${baseUrl}/anime/${anime.slug}`} />
-                  <meta itemProp="image" content={anime.image?.poster ? `https://image.tmdb.org/t/p/w500${anime.image.poster}` : ""} />
+                  <meta itemProp="image" content={getPosterUrl(anime)} />
                 </article>
               ))}
             </div>
+
             {/* Navigation Arrows */}
             {!isMobile && (
               <>
@@ -621,7 +662,7 @@ const HomePage = () => {
             gap: isMobile ? '12px' : isTablet ? '16px' : '20px'
           }} role="list">
             {popularAnime.map(anime => (
-              <div key={anime.id} role="listitem">
+              <div key={anime.id || anime.slug} role="listitem">
                 <AnimeCard anime={anime} />
               </div>
             ))}
