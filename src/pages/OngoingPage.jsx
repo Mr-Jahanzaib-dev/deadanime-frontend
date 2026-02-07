@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Play, Star } from 'lucide-react';
+import { Clock, Star } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import AnimeCard from '../components/AnimeCard';
@@ -56,63 +56,6 @@ const OngoingPage = () => {
 
     fetchOngoingAnime();
   }, [currentPage, sortBy]);
-
-  // SEO: Generate structured data
-  const generateStructuredData = () => {
-    const baseUrl = window.location.origin;
-    const topAnime = ongoingAnime.slice(0, 10);
-    
-    return {
-      "@context": "https://schema.org",
-      "@type": "CollectionPage",
-      "name": "Ongoing Anime Series - Watch Latest Episodes",
-      "url": `${baseUrl}/ongoing`,
-      "description": "Watch ongoing anime series with latest episodes. Stream currently airing anime shows in HD quality with English subtitles and dubs.",
-      "breadcrumb": {
-        "@type": "BreadcrumbList",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": baseUrl
-          },
-          {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "Ongoing Anime",
-            "item": `${baseUrl}/ongoing`
-          }
-        ]
-      },
-      "mainEntity": {
-        "@type": "ItemList",
-        "name": "Ongoing Anime Series",
-        "numberOfItems": ongoingAnime.length,
-        "itemListElement": topAnime.map((anime, index) => ({
-          "@type": "ListItem",
-          "position": index + 1,
-          "item": {
-            "@type": "TVSeries",
-            "name": anime.name,
-            "url": `${baseUrl}/anime/${anime.slug}`,
-            "image": anime.image?.poster ? `https://image.tmdb.org/t/p/w500${anime.image.poster}` : "",
-            "description": anime.overview,
-            "aggregateRating": anime.rating ? {
-              "@type": "AggregateRating",
-              "ratingValue": anime.rating,
-              "bestRating": "10",
-              "worstRating": "0"
-            } : undefined,
-            "datePublished": anime.release,
-            "numberOfEpisodes": anime.episodes,
-            "contentRating": "PG-13"
-          }
-        }))
-      }
-    };
-  };
-
   // SEO: Dynamic meta tags
   const generateMetaTags = () => {
     const baseUrl = window.location.origin;
@@ -136,8 +79,6 @@ const OngoingPage = () => {
     
     return { pageTitle, description, keywords, baseUrl, ogImage };
   };
-
-  const { pageTitle, description, keywords, baseUrl, ogImage } = generateMetaTags();
 
   if (loading) {
     return (

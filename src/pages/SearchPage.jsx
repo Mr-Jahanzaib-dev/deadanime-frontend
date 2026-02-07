@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, X, TrendingUp, Film, Tv, Loader2, Filter } from 'lucide-react';
+import { Search, X, TrendingUp, Film, Tv, Loader2} from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
