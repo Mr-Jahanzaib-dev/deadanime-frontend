@@ -18,107 +18,6 @@ const MarvelPage = () => {
   const [isMobile, setIsMobile] = useState(false);
   const itemsPerPage = 18;
 
-  // SEO Configuration
-  const siteUrl = 'https://dead-anime.vercel.app/'; // 🔴 REPLACE WITH YOUR DOMAIN
-  const siteName = 'ToonVerse Haven'; // 🔴 REPLACE WITH YOUR SITE NAME
-
-  // Dynamic SEO functions
-  const getPageTitle = () => {
-    let title = `Watch Marvel & Superhero Anime Online Free - HD Quality`;
-    if (currentPage > 1) title += ` - Page ${currentPage}`;
-    if (sortBy === 'popular') title += ` - Most Popular`;
-    if (sortBy === 'new') title += ` - Latest Releases`;
-    if (sortBy === 'rating') title += ` - Top Rated`;
-    return `${title} | ${siteName}`;
-  };
-
-  const getPageDescription = () => {
-    const sortText = {
-      'rating': 'highest rated',
-      'popular': 'most popular',
-      'new': 'latest',
-      'name': 'all'
-    };
-    return `Browse ${sortText[sortBy]} Marvel and superhero anime online. Stream ${allMarvelContent.length}+ anime series featuring Spider-Man, Avengers, X-Men and more. Watch subbed and dubbed superhero anime free.`;
-  };
-
-  const getKeywords = () => {
-    return 'marvel anime, superhero anime, spider-man anime, avengers anime, x-men anime, watch marvel online, marvel series, iron man anime, captain america anime, thor anime, hulk anime, wolverine anime, deadpool anime, superhero series online';
-  };
-
-  // Structured data for rich snippets
-  const generateStructuredData = () => {
-    if (marvelAnime.length === 0) return {};
-
-    const itemList = marvelAnime.slice(0, 12).map((anime, index) => ({
-      "@type": "ListItem",
-      "position": index + 1,
-      "item": {
-        "@type": "TVSeries",
-        "@id": `${siteUrl}/anime/${anime.slug}`,
-        "name": anime.name,
-        "image": anime.image,
-        "url": `${siteUrl}/anime/${anime.slug}`,
-        "genre": ["Animation", "Action", "Superhero"],
-        ...(anime.rating && {
-          "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": anime.rating,
-            "bestRating": "10",
-            "worstRating": "0",
-            "ratingCount": anime.views || 100
-          }
-        }),
-        ...(anime.release && { "datePublished": anime.release }),
-        ...(anime.overview && { "description": anime.overview.substring(0, 200) }),
-        ...(anime.episodes && { "numberOfEpisodes": anime.episodes })
-      }
-    }));
-
-    return {
-      "@context": "https://schema.org",
-      "@type": "ItemList",
-      "name": "Marvel & Superhero Anime Collection",
-      "description": `A curated collection of ${allMarvelContent.length} Marvel and superhero anime series available to watch online in HD quality`,
-      "numberOfItems": allMarvelContent.length,
-      "itemListElement": itemList
-    };
-  };
-
-  const breadcrumbStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": siteUrl
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Marvel & Superhero Anime",
-        "item": `${siteUrl}/marvel`
-      }
-    ]
-  };
-
-  const websiteStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": siteName,
-    "url": siteUrl,
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": {
-        "@type": "EntryPoint",
-        "urlTemplate": `${siteUrl}/search?q={search_term_string}`
-      },
-      "query-input": "required name=search_term_string"
-    }
-  };
-
   // Marvel/Superhero keywords for filtering
   const marvelKeywords = [
     'marvel', 'spider', 'iron man', 'avengers', 'x-men', 'superhero', 
@@ -133,17 +32,18 @@ const MarvelPage = () => {
 
   // Filter function to check if anime is Marvel-related
   const isMarvelContent = (anime) => {
-    const searchText = `${anime.name} ${anime.overview}`.toLowerCase();
+    if (!anime || !anime.name) return false;
+    const searchText = `${anime.name} ${anime.overview || ''}`.toLowerCase();
     return marvelKeywords.some(keyword => searchText.includes(keyword));
   };
 
-  // FIXED: Handle anime card click - navigate to detail page using slug
+  // Handle anime card click - navigate to detail page using slug
   const handleAnimeClick = (slug) => {
     console.log('Navigating to anime:', slug);
     navigate(`/anime/${slug}`);
   };
 
-  // Initial fetch of all Marvel content
+  // Check mobile screen size
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -155,6 +55,7 @@ const MarvelPage = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Initial fetch of all Marvel content
   useEffect(() => {
     const fetchAllMarvelContent = async () => {
       setLoading(true);
@@ -162,7 +63,7 @@ const MarvelPage = () => {
       
       try {
         let allContent = [];
-        const pagesToFetch = 10;
+        const pagesToFetch = 5; // Reduced from 10 to 5 for faster loading
         const limitPerPage = 50;
         
         console.log(`🔍 Starting Marvel content search across ${pagesToFetch} pages...`);
@@ -188,16 +89,18 @@ const MarvelPage = () => {
         const results = await Promise.all(fetchPromises);
         
         results.forEach(data => {
-          if (data && data.posts) {
+          if (data && data.posts && Array.isArray(data.posts)) {
             allContent = [...allContent, ...data.posts];
           }
         });
         
         console.log(`📦 Total items fetched: ${allContent.length}`);
         
+        // Filter Marvel content
         const marvelFiltered = allContent.filter(isMarvelContent);
         console.log(`⚡ Marvel items found: ${marvelFiltered.length}`);
         
+        // Remove duplicates
         const uniqueMarvel = Array.from(
           new Map(marvelFiltered.map(item => [item.id, item])).values()
         );
@@ -224,6 +127,7 @@ const MarvelPage = () => {
   // Handle sorting and pagination
   useEffect(() => {
     if (initialLoading) return;
+    
     if (allMarvelContent.length === 0) {
       setMarvelAnime([]);
       setTotalPages(1);
@@ -277,6 +181,15 @@ const MarvelPage = () => {
     
     console.log(`📄 Pagination: Page ${currentPage}/${calculatedTotalPages}, Showing ${paginatedItems.length} items`);
   }, [currentPage, sortBy, allMarvelContent, initialLoading]);
+
+  // Simple SEO - Update page title
+  useEffect(() => {
+    document.title = `Marvel & Superhero Anime - Page ${currentPage} | ToonVerse Haven`;
+    
+    return () => {
+      document.title = 'ToonVerse Haven';
+    };
+  }, [currentPage]);
 
   if (loading) {
     return (
@@ -387,11 +300,13 @@ const MarvelPage = () => {
       <div style={{ background: '#0a0a0a', minHeight: '100vh', color: '#fff' }}>
         <Navbar />
 
-        {marvelAnime[0] && (
+        {marvelAnime.length > 0 && marvelAnime[0] && (
           <div style={{ 
             position: 'relative',
             height: isMobile ? '350px' : '500px',
-            background: `linear-gradient(to right, rgba(10,10,10,0.95) 40%, rgba(10,10,10,0.3)), url(https://image.tmdb.org/t/p/original${marvelAnime[0].image?.backdrop})`,
+            background: marvelAnime[0].image?.backdrop 
+              ? `linear-gradient(to right, rgba(10,10,10,0.95) 40%, rgba(10,10,10,0.3)), url(https://image.tmdb.org/t/p/original${marvelAnime[0].image.backdrop})`
+              : 'linear-gradient(135deg, #e50914 0%, #ff1744 100%)',
             backgroundSize: 'cover',
             backgroundPosition: 'center'
           }}>
@@ -412,19 +327,25 @@ const MarvelPage = () => {
                     {marvelAnime[0].name}
                   </h1>
                   <div className="d-flex align-items-center gap-3 mb-3 flex-wrap">
-                    <span className="badge px-3 py-2" style={{ 
-                      background: 'rgba(229, 9, 20, 0.2)',
-                      border: '1px solid #e50914',
-                      color: '#fff'
-                    }}>
-                      <Star size={14} fill="#ffc107" color="#ffc107" className="me-1" />
-                      {marvelAnime[0].rating}
-                    </span>
+                    {marvelAnime[0].rating && (
+                      <span className="badge px-3 py-2" style={{ 
+                        background: 'rgba(229, 9, 20, 0.2)',
+                        border: '1px solid #e50914',
+                        color: '#fff'
+                      }}>
+                        <Star size={14} fill="#ffc107" color="#ffc107" className="me-1" />
+                        {marvelAnime[0].rating}
+                      </span>
+                    )}
                     <span style={{ color: '#999' }}>
                       {marvelAnime[0].year || (marvelAnime[0].release ? new Date(marvelAnime[0].release).getFullYear() : 'N/A')}
                     </span>
-                    <span style={{ color: '#999' }}>{marvelAnime[0].type?.toUpperCase()}</span>
-                    <span style={{ color: '#999' }}>{marvelAnime[0].episodes} Episodes</span>
+                    {marvelAnime[0].type && (
+                      <span style={{ color: '#999' }}>{marvelAnime[0].type.toUpperCase()}</span>
+                    )}
+                    {marvelAnime[0].episodes && (
+                      <span style={{ color: '#999' }}>{marvelAnime[0].episodes} Episodes</span>
+                    )}
                   </div>
                   <p className={isMobile ? "mb-4" : "lead mb-4"} style={{ 
                     color: '#ccc', 
@@ -678,18 +599,15 @@ const MarvelPage = () => {
             padding-right: 8px;
           }
 
-          /* Hero section mobile adjustments */
           .h-100 {
             min-height: 300px;
           }
 
-          /* Select dropdown full width on mobile */
           .form-select {
             width: 100% !important;
             margin-top: 10px;
           }
 
-          /* Header layout adjustments */
           .d-flex.justify-content-between {
             flex-direction: column;
             align-items: flex-start !important;
@@ -697,7 +615,6 @@ const MarvelPage = () => {
           }
         }
 
-        /* Tablet adjustments */
         @media (min-width: 768px) and (max-width: 991.98px) {
           .container {
             padding-left: 20px !important;
@@ -705,14 +622,12 @@ const MarvelPage = () => {
           }
         }
 
-        /* Large screens */
         @media (min-width: 1200px) {
           .container {
             max-width: 1400px;
           }
         }
 
-        /* Extra small screens */
         @media (max-width: 480px) {
           .container {
             padding-left: 10px !important;
