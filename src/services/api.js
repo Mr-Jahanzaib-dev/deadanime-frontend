@@ -7,617 +7,548 @@ console.log('🔗 Proxy URL:', DEAD_ANIME_API);
 
 // ==================== UTILITIES ====================
 
-// Enhanced fetch wrapper with retry logic
+/**
+ * Fetch wrapper with exponential-backoff retry.
+ * Pass `cache: 'force-cache'` in options for cacheable reads.
+ */
 const apiFetch = async (url, options = {}, retries = 2) => {
   for (let i = 0; i <= retries; i++) {
     try {
-      console.log(`🔍 Fetching (attempt ${i + 1}/${retries + 1}):`, url);
-      
+      console.log(`🔍 Fetching (attempt ${i + 1}/${retries + 1}): ${url}`);
+
       const response = await fetch(url, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
           ...options.headers,
         },
-        cache: 'no-store'
+        // Default to no-store only when caller hasn't specified a cache policy
+        cache: options.cache ?? 'no-store',
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
-      console.log('✅ Success:', data);
-      
+      console.log('✅ Success:', url);
       return data;
     } catch (error) {
-      console.error(`❌ Attempt ${i + 1} failed:`, error.message);
-      
-      if (i === retries) {
-        throw error;
-      }
-      
-      // Wait before retry (exponential backoff)
-      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+      console.error(`❌ Attempt ${i + 1} failed: ${error.message}`);
+      if (i === retries) throw error;
+      await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, i)));
     }
   }
 };
 
-// Extract anime list from various response structures
+/**
+ * Robustly extract an array of anime from any API response shape.
+ * Checks the most common wrapper patterns in order.
+ */
 const extractAnimeList = (data) => {
-  console.log('🔍 Extracting anime list from response');
-  
   if (!data) {
-    console.warn('⚠️ No data provided');
+    console.warn('⚠️ extractAnimeList: no data');
     return [];
   }
-  
-  // Direct array
-  if (Array.isArray(data)) {
-    console.log('✅ Direct array, length:', data.length);
-    return data;
-  }
-  
-  // Nested structures - check in order of likelihood
-  const possiblePaths = [
-    () => data.status === 'success' && data.data,
-    () => data.data,
-    () => data.results,
-    () => data.anime,
-    () => data.posts,
-    () => data.items
+
+  // Already a plain array
+  if (Array.isArray(data)) return data;
+
+  // Walk common wrapper paths
+  const candidates = [
+    // { status: 'success', data: [...] }
+    data.status === 'success' ? data.data : undefined,
+    // { data: { results: [...] } }
+    data.data?.results,
+    // { data: [...] }
+    data.data,
+    // { results: [...] }
+    data.results,
+    // { anime: [...] }
+    data.anime,
+    // { posts: [...] }
+    data.posts,
+    // { items: [...] }
+    data.items,
   ];
-  
-  for (const getPath of possiblePaths) {
-    try {
-      const result = getPath();
-      if (Array.isArray(result)) {
-        console.log('✅ Found array at path, length:', result.length);
-        return result;
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate;
+
+    // Handle numeric-keyed objects like { "0": {...}, "1": {...} }
+    if (candidate && typeof candidate === 'object') {
+      const values = Object.values(candidate);
+      if (values.length > 0 && values.every((v) => v && typeof v === 'object' && v.id)) {
+        return values;
       }
-      
-      // Handle nested objects
-      if (result && typeof result === 'object') {
-        const nestedArrays = [
-          result.results,
-          result.anime,
-          result.items,
-          result.posts
-        ];
-        
-        for (const arr of nestedArrays) {
-          if (Array.isArray(arr)) {
-            console.log('✅ Found nested array, length:', arr.length);
-            return arr;
-          }
-        }
-        
-        // Try object values (for numeric keys)
-        const values = Object.values(result);
-        if (values.length > 0 && values.every(v => v && typeof v === 'object' && v.id)) {
-          console.log('✅ Converting object to array, length:', values.length);
-          return values;
-        }
-      }
-    } catch (e) {
-      continue;
     }
   }
-  
-  console.warn('⚠️ Could not extract anime list');
+
+  console.warn('⚠️ extractAnimeList: could not find array in response', data);
   return [];
 };
 
-// Transform Dead Anime API response to app format
+/**
+ * Normalise a raw anime object from the Dead Anime API into the
+ * consistent shape the app expects.
+ */
 const transformAnimeData = (anime) => {
-  if (!anime || typeof anime !== 'object') {
-    return null;
-  }
-  
+  if (!anime || typeof anime !== 'object') return null;
+
   try {
-    // Extract image URLs
+    // ── Images ──────────────────────────────────────────────────────────────
     let posterUrl = '';
     let backdropUrl = '';
-    
+
     if (typeof anime.image === 'string') {
       posterUrl = backdropUrl = anime.image;
     } else if (anime.image && typeof anime.image === 'object') {
-      posterUrl = anime.image.poster || anime.image.large || anime.image.medium || '';
-      backdropUrl = anime.image.backdrop || anime.image.large || anime.image.medium || '';
+      posterUrl   = anime.image.poster   || anime.image.large  || anime.image.medium || '';
+      backdropUrl = anime.image.backdrop || anime.image.large  || anime.image.medium || '';
     }
-    
-    // Handle TMDB-style paths
-    if (posterUrl && posterUrl.startsWith('/')) {
-      posterUrl = `https://image.tmdb.org/t/p/w500${posterUrl}`;
-    }
-    if (backdropUrl && backdropUrl.startsWith('/')) {
-      backdropUrl = `https://image.tmdb.org/t/p/original${backdropUrl}`;
-    }
-    
-    // Extract year from release date
+
+    // Handle bare TMDB-style paths
+    if (posterUrl   && posterUrl.startsWith('/'))   posterUrl   = `https://image.tmdb.org/t/p/w500${posterUrl}`;
+    if (backdropUrl && backdropUrl.startsWith('/')) backdropUrl = `https://image.tmdb.org/t/p/original${backdropUrl}`;
+
+    // ── Release year ─────────────────────────────────────────────────────────
     let year = 'N/A';
     if (anime.year) {
-      year = anime.year.toString();
+      year = String(anime.year);
     } else if (anime.release && anime.release !== '0000-00-00') {
-      try {
-        year = new Date(anime.release).getFullYear().toString();
-      } catch (e) {
-        year = 'N/A';
-      }
+      try { year = String(new Date(anime.release).getFullYear()); } catch (_) { /* keep N/A */ }
     }
-    
+
+    // ── Completion flag ──────────────────────────────────────────────────────
+    // Treat as complete when either `complete` is a non-empty, non-zero date string,
+    // OR `status` explicitly says 'completed' / 'complete'.
+    const statusCompleted =
+      ['completed', 'complete', 'finished'].includes(
+        String(anime.status ?? '').toLowerCase()
+      );
+    const completeDate =
+      anime.complete && anime.complete !== '0000-00-00' ? anime.complete : null;
+    const isComplete = statusCompleted || Boolean(completeDate);
+
     return {
-      id: anime.id,
-      slug: anime.slug || anime.name?.toLowerCase().replace(/\s+/g, '-'),
-      name: anime.name || anime.title || 'Unknown',
-      type: anime.type || 'series',
+      id:          anime.id,
+      slug:        anime.slug || String(anime.name || '').toLowerCase().replace(/\s+/g, '-'),
+      name:        anime.name  || anime.title || 'Unknown',
+      type:        (anime.type || 'series').toLowerCase(),
       image: {
-        poster: posterUrl,
-        backdrop: backdropUrl
+        poster:   posterUrl,
+        backdrop: backdropUrl,
       },
-      rating: anime.rating || 'N/A',
-      year: year,
-      release: anime.release || year,
-      episodes: parseInt(anime.episodes) || 0,
-      overview: anime.overview || anime.description || '',
-      duration: anime.duration || null,
-      complete: anime.complete || (anime.status === 'completed' ? '2024-01-01' : '0000-00-00'),
-      views: parseInt(anime.views) || 0,
-      subOrDub: anime.subOrDub || 'Sub/Dub',
-      age: anime.age || null,
-      poster_img: posterUrl,
-      genres: anime.genres || []
+      poster_img:  posterUrl,
+      rating:      anime.rating  ?? 'N/A',
+      year,
+      release:     anime.release || year,
+      episodes:    parseInt(anime.episodes)  || 0,
+      overview:    anime.overview || anime.description || '',
+      duration:    anime.duration || null,
+      complete:    isComplete ? (completeDate || 'completed') : null,
+      isComplete,
+      views:       parseInt(anime.views) || 0,
+      subOrDub:    anime.subOrDub || 'Sub/Dub',
+      age:         anime.age || null,
+      genres:      Array.isArray(anime.genres) ? anime.genres : [],
     };
   } catch (error) {
-    console.error('❌ Transform error:', error);
+    console.error('❌ transformAnimeData error:', error);
     return null;
   }
 };
 
 // ==================== API FUNCTIONS ====================
 
-// Search Anime
+// ── Search Anime ─────────────────────────────────────────────────────────────
 export const searchAnime = async (term, page = 1, limit = 12) => {
   try {
-    if (!term || term.trim() === '') {
-      return { posts: [], total_pages: 0 };
-    }
-    
+    if (!term || !term.trim()) return { posts: [], total_pages: 0 };
+
     const data = await apiFetch(
       `${DEAD_ANIME_API}/list?search=${encodeURIComponent(term.trim())}&limit=${limit}&page=${page}`
     );
-    
-    const animeList = extractAnimeList(data);
-    const posts = animeList.map(transformAnimeData).filter(Boolean);
-    
-    console.log(`✅ Search complete: ${posts.length} results for "${term}"`);
+
+    const posts = extractAnimeList(data).map(transformAnimeData).filter(Boolean);
+    console.log(`✅ Search: ${posts.length} results for "${term}"`);
     return { posts, total_pages: Math.ceil(posts.length / limit) || 1 };
   } catch (error) {
-    console.error('❌ Search error:', error);
+    console.error('❌ searchAnime error:', error);
     return { posts: [], total_pages: 0 };
   }
 };
 
-// Get Anime Info
+// ── Anime info ───────────────────────────────────────────────────────────────
 export const getAnimeInfo = async (slug) => {
   try {
-    if (!slug) {
-      throw new Error('Slug is required');
-    }
-    
-    const data = await apiFetch(`${DEAD_ANIME_API}/anime?slug=${slug}`);
-    const animeData = data.data || data;
-    const transformed = transformAnimeData(animeData);
-    
-    if (!transformed) {
-      throw new Error('Failed to transform anime data');
-    }
-    
-    console.log('✅ Anime info retrieved:', transformed.name);
+    if (!slug) throw new Error('slug is required');
+
+    const data = await apiFetch(`${DEAD_ANIME_API}/anime?slug=${encodeURIComponent(slug)}`);
+    const raw  = data?.data ?? data;
+    const transformed = transformAnimeData(raw);
+
+    if (!transformed) throw new Error('Failed to transform anime data');
+    console.log('✅ getAnimeInfo:', transformed.name);
     return transformed;
   } catch (error) {
-    console.error('❌ Get anime info error:', error);
+    console.error('❌ getAnimeInfo error:', error);
     return null;
   }
 };
 
-// Get Season Info
+// ── Season info (local — upstream doesn't expose a seasons endpoint) ─────────
 export const getSeasonInfo = async (animeId) => {
-  try {
-    // Default to single season (most anime have one season per entry)
-    return {
-      seasons: [{
-        id: animeId,
-        num: 1,
-        name: 'Season 1'
-      }]
-    };
-  } catch (error) {
-    console.error('❌ Get season info error:', error);
-    return { seasons: [] };
-  }
+  return {
+    seasons: [{ id: animeId, num: 1, name: 'Season 1' }],
+  };
 };
 
-// Get Episodes
+// ── Episodes ─────────────────────────────────────────────────────────────────
 export const getEpisodes = async (seasonId) => {
   try {
     const data = await apiFetch(
-      `${DEAD_ANIME_API}/pack?season_id=${seasonId}&start_ep=1&end_ep=100`
+      `${DEAD_ANIME_API}/pack?season_id=${encodeURIComponent(seasonId)}&start_ep=1&end_ep=9999`
     );
-    
-    const episodeList = extractAnimeList(data);
-    
+
+    // The pack endpoint returns an episode list, not an anime list,
+    // so we unwrap carefully before mapping.
+    const raw = data?.data ?? data?.results ?? data ?? [];
+    const episodeList = Array.isArray(raw) ? raw : Object.values(raw);
+
     const episodes = episodeList.map((ep, index) => ({
-      id: ep.id || index + 1,
-      number: ep.episode || ep.number || index + 1,
-      name: ep.name || ep.title || `Episode ${index + 1}`,
-      note: ep.note || null,
-      image: ep.image || null
+      id:     ep.id     ?? index + 1,
+      number: parseInt(ep.episode ?? ep.number ?? ep.ep) || index + 1,
+      name:   ep.name   || ep.title || `Episode ${index + 1}`,
+      note:   ep.note   || null,
+      image:  ep.image  || null,
     }));
-    
-    console.log(`✅ Retrieved ${episodes.length} episodes`);
+
+    console.log(`✅ getEpisodes: ${episodes.length} episodes`);
     return episodes;
   } catch (error) {
-    console.error('❌ Get episodes error:', error);
+    console.error('❌ getEpisodes error:', error);
     return [];
   }
 };
 
-// Get Episode Links
+// ── Episode streaming links ───────────────────────────────────────────────────
 export const getEpisodeLinks = async (episodeId, slug, season = 1, episode = 1) => {
   try {
     if (!slug) {
-      console.warn('⚠️ No slug provided for episode links');
+      console.warn('⚠️ getEpisodeLinks: no slug provided');
       return { servers: [], hasValidLinks: false, total: 0 };
     }
-    
+
     const data = await apiFetch(
-      `${DEAD_ANIME_API}/episode?slug=${slug}&season=${season}&episode=${episode}`
+      `${DEAD_ANIME_API}/episode?slug=${encodeURIComponent(slug)}&season=${season}&episode=${episode}`
     );
-    
-    const episodeData = data.data || data;
+
+    const episodeData = data?.data ?? data;
     const servers = [];
-    
-    // Extract sources
-    if (episodeData.sources && Array.isArray(episodeData.sources)) {
-      episodeData.sources.forEach((source, index) => {
+
+    if (Array.isArray(episodeData.sources)) {
+      episodeData.sources.forEach((source, i) => {
         const url = source.url || source.file;
         if (url) {
           servers.push({
-            name: source.name || `Server ${index + 1}`,
-            watch: url,
-            url: url,
-            quality: source.quality || 'auto'
+            name:    source.name    || `Server ${i + 1}`,
+            watch:   url,
+            url,
+            quality: source.quality || 'auto',
           });
         }
       });
     } else if (episodeData.url) {
-      servers.push({
-        name: 'Default',
-        watch: episodeData.url,
-        url: episodeData.url,
-        quality: 'auto'
-      });
+      servers.push({ name: 'Default', watch: episodeData.url, url: episodeData.url, quality: 'auto' });
     }
-    
-    const hasValidLinks = servers.length > 0;
-    console.log(`✅ Retrieved ${servers.length} streaming sources`);
-    
-    return {
-      servers,
-      hasValidLinks,
-      total: servers.length
-    };
+
+    console.log(`✅ getEpisodeLinks: ${servers.length} sources`);
+    return { servers, hasValidLinks: servers.length > 0, total: servers.length };
   } catch (error) {
-    console.error('❌ Get episode links error:', error);
-    return { 
-      servers: [], 
-      hasValidLinks: false, 
-      total: 0, 
-      error: error.message 
-    };
+    console.error('❌ getEpisodeLinks error:', error);
+    return { servers: [], hasValidLinks: false, total: 0, error: error.message };
   }
 };
 
-// Get Popular Anime
-export const getPopularAnime = async (duration = 'month', page = 1, limit = 12) => {
+// ── Popular anime (sorted by rating desc) ────────────────────────────────────
+export const getPopularAnime = async (_duration = 'month', page = 1, limit = 12) => {
   try {
     const data = await apiFetch(
-      `${DEAD_ANIME_API}/list?limit=${limit * 2}&page=${page}`
+      `${DEAD_ANIME_API}/list?limit=${limit * 3}&page=${page}`,
+      { cache: 'default' }
     );
-    
-    const animeList = extractAnimeList(data);
-    let posts = animeList.map(transformAnimeData).filter(Boolean);
-    
-    // Sort by rating
-    posts.sort((a, b) => {
-      const ratingA = parseFloat(a.rating) || 0;
-      const ratingB = parseFloat(b.rating) || 0;
-      return ratingB - ratingA;
-    });
-    
-    posts = posts.slice(0, limit);
-    
-    console.log(`✅ Retrieved ${posts.length} popular anime`);
+
+    const posts = extractAnimeList(data)
+      .map(transformAnimeData)
+      .filter(Boolean)
+      .sort((a, b) => (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0))
+      .slice(0, limit);
+
+    console.log(`✅ getPopularAnime: ${posts.length}`);
     return { posts, total_pages: 1 };
   } catch (error) {
-    console.error('❌ Get popular anime error:', error);
+    console.error('❌ getPopularAnime error:', error);
     return { posts: [], total_pages: 0 };
   }
 };
 
-// Get Series
+// ── Series only ───────────────────────────────────────────────────────────────
 export const getSeries = async (page = 1, limit = 12) => {
   try {
     const data = await apiFetch(
-      `${DEAD_ANIME_API}/list?limit=${limit * 2}&page=${page}`
+      `${DEAD_ANIME_API}/list?limit=${limit * 3}&page=${page}`,
+      { cache: 'default' }
     );
-    
-    const animeList = extractAnimeList(data);
-    const posts = animeList
-      .filter(anime => anime.type !== 'movie')
+
+    const posts = extractAnimeList(data)
       .map(transformAnimeData)
       .filter(Boolean)
+      .filter((a) => a.type !== 'movie')
       .slice(0, limit);
-    
-    console.log(`✅ Retrieved ${posts.length} series`);
+
+    console.log(`✅ getSeries: ${posts.length}`);
     return { posts, total_pages: 1 };
   } catch (error) {
-    console.error('❌ Get series error:', error);
+    console.error('❌ getSeries error:', error);
     return { posts: [], total_pages: 0 };
   }
 };
 
-// Get Movies
+// ── Movies only ───────────────────────────────────────────────────────────────
 export const getMovies = async (page = 1, limit = 12) => {
   try {
     const data = await apiFetch(
-      `${DEAD_ANIME_API}/list?limit=100&page=${page}`
+      `${DEAD_ANIME_API}/list?limit=100&page=${page}`,
+      { cache: 'default' }
     );
-    
-    const animeList = extractAnimeList(data);
-    const posts = animeList
-      .filter(anime => anime.type === 'movie')
+
+    const posts = extractAnimeList(data)
       .map(transformAnimeData)
       .filter(Boolean)
+      .filter((a) => a.type === 'movie')
       .slice(0, limit);
-    
-    console.log(`✅ Retrieved ${posts.length} movies`);
+
+    console.log(`✅ getMovies: ${posts.length}`);
     return { posts, total_pages: 1 };
   } catch (error) {
-    console.error('❌ Get movies error:', error);
+    console.error('❌ getMovies error:', error);
     return { posts: [], total_pages: 0 };
   }
 };
 
-// Get Movie Links
+// ── Movie streaming links ─────────────────────────────────────────────────────
 export const getMovieLinks = async (slug) => {
   try {
-    if (!slug) {
-      throw new Error('Slug is required');
-    }
-    
-    const data = await apiFetch(`${DEAD_ANIME_API}/movie?slug=${slug}`);
-    const movieData = data.data || data;
+    if (!slug) throw new Error('slug is required');
+
+    const data = await apiFetch(`${DEAD_ANIME_API}/movie?slug=${encodeURIComponent(slug)}`);
+    const movieData = data?.data ?? data;
     const servers = [];
-    
-    // Extract sources
-    if (movieData.sources && Array.isArray(movieData.sources)) {
-      movieData.sources.forEach((source, index) => {
+
+    if (Array.isArray(movieData.sources)) {
+      movieData.sources.forEach((source, i) => {
         const url = source.url || source.file;
         if (url) {
           servers.push({
-            name: source.name || `Server ${index + 1}`,
-            watch: url,
-            url: url,
-            quality: source.quality || 'auto'
+            name:    source.name    || `Server ${i + 1}`,
+            watch:   url,
+            url,
+            quality: source.quality || 'auto',
           });
         }
       });
     } else {
       const videoUrl = movieData.video_url || movieData.url || movieData.stream || movieData.file;
       if (videoUrl) {
-        servers.push({
-          name: 'Default',
-          watch: videoUrl,
-          url: videoUrl,
-          quality: 'auto'
-        });
+        servers.push({ name: 'Default', watch: videoUrl, url: videoUrl, quality: 'auto' });
       }
     }
-    
-    const hasValidLinks = servers.length > 0;
-    console.log(`✅ Retrieved ${servers.length} movie sources`);
-    
-    return {
-      servers,
-      hasValidLinks,
-      total: servers.length
-    };
+
+    console.log(`✅ getMovieLinks: ${servers.length} sources`);
+    return { servers, hasValidLinks: servers.length > 0, total: servers.length };
   } catch (error) {
-    console.error('❌ Get movie links error:', error);
-    return { 
-      servers: [], 
-      hasValidLinks: false, 
-      total: 0, 
-      error: error.message 
-    };
+    console.error('❌ getMovieLinks error:', error);
+    return { servers: [], hasValidLinks: false, total: 0, error: error.message };
   }
 };
 
-// Get Random Anime
+// ── Random anime ──────────────────────────────────────────────────────────────
 export const getRandomAnime = async (page = 1, limit = 12) => {
   try {
-    const data = await apiFetch(`${DEAD_ANIME_API}/list?limit=${limit * 2}`);
-    const animeList = extractAnimeList(data);
-    
-    const posts = animeList
+    const data = await apiFetch(`${DEAD_ANIME_API}/list?limit=${limit * 3}&page=${page}`);
+
+    const posts = extractAnimeList(data)
       .map(transformAnimeData)
       .filter(Boolean)
       .sort(() => Math.random() - 0.5)
       .slice(0, limit);
-    
-    console.log(`✅ Retrieved ${posts.length} random anime`);
+
+    console.log(`✅ getRandomAnime: ${posts.length}`);
     return { posts, total_pages: 1 };
   } catch (error) {
-    console.error('❌ Get random anime error:', error);
+    console.error('❌ getRandomAnime error:', error);
     return { posts: [], total_pages: 0 };
   }
 };
 
-// Get Ongoing Anime
+// ── Ongoing anime ─────────────────────────────────────────────────────────────
+// "Ongoing" = isComplete is falsy
 export const getOngoingAnime = async (page = 1, limit = 12) => {
   try {
     const data = await apiFetch(
-      `${DEAD_ANIME_API}/list?limit=${limit * 2}&page=${page}`
+      `${DEAD_ANIME_API}/list?limit=${limit * 3}&page=${page}`,
+      { cache: 'default' }
     );
-    
-    const animeList = extractAnimeList(data);
-    const posts = animeList
-      .filter(anime => !anime.complete && anime.status !== 'completed')
+
+    const posts = extractAnimeList(data)
       .map(transformAnimeData)
       .filter(Boolean)
+      .filter((a) => !a.isComplete)
       .slice(0, limit);
-    
-    console.log(`✅ Retrieved ${posts.length} ongoing anime`);
+
+    console.log(`✅ getOngoingAnime: ${posts.length}`);
     return { posts, total_pages: 1 };
   } catch (error) {
-    console.error('❌ Get ongoing anime error:', error);
+    console.error('❌ getOngoingAnime error:', error);
     return { posts: [], total_pages: 0 };
   }
 };
 
-// Get Completed Anime
+// ── Completed anime ───────────────────────────────────────────────────────────
 export const getCompletedAnime = async (page = 1, limit = 12) => {
   try {
     const data = await apiFetch(
-      `${DEAD_ANIME_API}/list?limit=${limit * 2}&page=${page}`
+      `${DEAD_ANIME_API}/list?limit=${limit * 3}&page=${page}`,
+      { cache: 'default' }
     );
-    
-    const animeList = extractAnimeList(data);
-    const posts = animeList
-      .filter(anime => anime.complete || anime.status === 'completed')
+
+    const posts = extractAnimeList(data)
       .map(transformAnimeData)
       .filter(Boolean)
+      .filter((a) => a.isComplete)
       .slice(0, limit);
-    
-    console.log(`✅ Retrieved ${posts.length} completed anime`);
+
+    console.log(`✅ getCompletedAnime: ${posts.length}`);
     return { posts, total_pages: 1 };
   } catch (error) {
-    console.error('❌ Get completed anime error:', error);
+    console.error('❌ getCompletedAnime error:', error);
     return { posts: [], total_pages: 0 };
   }
 };
 
-// Get Anime by Genre
+// ── Anime by genre ────────────────────────────────────────────────────────────
 export const getAnimeByGenre = async (genre, page = 1, limit = 12) => {
   try {
-    const data = await apiFetch(`${DEAD_ANIME_API}/list?limit=100`);
-    const animeList = extractAnimeList(data);
-    
-    const posts = animeList
-      .filter(anime => {
-        const genres = anime.genres || [];
-        return genres.some(g => 
-          g.toLowerCase() === genre.toLowerCase() ||
-          g.toLowerCase().includes(genre.toLowerCase())
-        );
-      })
+    const data = await apiFetch(
+      `${DEAD_ANIME_API}/list?limit=100&page=${page}`,
+      { cache: 'default' }
+    );
+
+    const normalised = genre.toLowerCase();
+    const posts = extractAnimeList(data)
       .map(transformAnimeData)
       .filter(Boolean)
+      .filter((a) =>
+        a.genres.some((g) => g.toLowerCase().includes(normalised))
+      )
       .slice(0, limit);
-    
-    console.log(`✅ Retrieved ${posts.length} ${genre} anime`);
+
+    console.log(`✅ getAnimeByGenre(${genre}): ${posts.length}`);
     return { posts, total_pages: 1 };
   } catch (error) {
-    console.error('❌ Get anime by genre error:', error);
+    console.error('❌ getAnimeByGenre error:', error);
     return { posts: [], total_pages: 0 };
   }
 };
 
-// Get Available Genres
-export const getGenres = async () => {
-  return [
-    'ACTION', 'ADVENTURE', 'COMEDY', 'DRAMA', 'ECCHI', 'FAMILY', 
-    'FANTASY', 'HISTORICAL', 'MYTHOLOGY', 'MYSTERY', 'SUPERNATURAL', 
-    'ROMANCE', 'HORROR', 'KIDS', 'POLITICS', 'SCHOOL', 'SAMURAI', 
-    'SCI-FI', 'SPORTS', 'THRILLER', 'SLICE OF LIFE'
-  ];
-};
+// ── Available genres (static list — extend as needed) ────────────────────────
+export const getGenres = async () => [
+  'Action', 'Adventure', 'Comedy', 'Drama', 'Ecchi', 'Family',
+  'Fantasy', 'Historical', 'Mythology', 'Mystery', 'Supernatural',
+  'Romance', 'Horror', 'Kids', 'Politics', 'School', 'Samurai',
+  'Sci-Fi', 'Sports', 'Thriller', 'Slice of Life',
+];
 
-// Get Similar Anime
+// ── Similar anime (matched by type then genres) ───────────────────────────────
 export const getSimilarAnime = async (animeId, limit = 6) => {
   try {
-    const data = await apiFetch(`${DEAD_ANIME_API}/list?limit=${limit * 2}`);
-    const animeList = extractAnimeList(data);
-    
-    const similar = animeList
-      .filter(anime => anime.id !== animeId)
+    // First get the reference anime so we know its type/genres
+    const ref = await getAnimeInfo(animeId);
+
+    const data = await apiFetch(`${DEAD_ANIME_API}/list?limit=100`, { cache: 'default' });
+
+    let candidates = extractAnimeList(data)
       .map(transformAnimeData)
       .filter(Boolean)
-      .slice(0, limit);
-    
-    console.log(`✅ Retrieved ${similar.length} similar anime`);
+      .filter((a) => String(a.id) !== String(animeId));
+
+    if (ref) {
+      const refGenres = new Set(ref.genres.map((g) => g.toLowerCase()));
+
+      // Score by number of shared genres + same type bonus
+      candidates = candidates
+        .map((a) => {
+          const sharedGenres = a.genres.filter((g) => refGenres.has(g.toLowerCase())).length;
+          const sameType     = a.type === ref.type ? 2 : 0;
+          return { ...a, _score: sharedGenres + sameType };
+        })
+        .sort((a, b) => b._score - a._score);
+    }
+
+    const similar = candidates.slice(0, limit);
+    console.log(`✅ getSimilarAnime: ${similar.length}`);
     return similar;
   } catch (error) {
-    console.error('❌ Get similar anime error:', error);
+    console.error('❌ getSimilarAnime error:', error);
     return [];
   }
 };
 
-// Get Recently Added
+// ── Recently added ────────────────────────────────────────────────────────────
 export const getRecentlyAdded = async (page = 1, limit = 12) => {
   try {
     const data = await apiFetch(
       `${DEAD_ANIME_API}/list?limit=${limit}&page=${page}`
     );
-    
-    const animeList = extractAnimeList(data);
-    const posts = animeList.map(transformAnimeData).filter(Boolean);
-    
-    console.log(`✅ Retrieved ${posts.length} recently added anime`);
+
+    const posts = extractAnimeList(data).map(transformAnimeData).filter(Boolean);
+    console.log(`✅ getRecentlyAdded: ${posts.length}`);
     return { posts, total_pages: 1 };
   } catch (error) {
-    console.error('❌ Get recently added error:', error);
+    console.error('❌ getRecentlyAdded error:', error);
     return { posts: [], total_pages: 0 };
   }
 };
 
 // ==================== UTILITY FUNCTIONS ====================
 
-// Check API Health
 export const checkApiHealth = async () => {
   try {
     await apiFetch(`${DEAD_ANIME_API}/list?limit=1`, {}, 0);
     return { status: 'healthy', message: 'API is operational' };
   } catch (error) {
-    return { 
-      status: 'error', 
-      message: error.message,
-      timestamp: new Date().toISOString()
-    };
+    return { status: 'error', message: error.message, timestamp: new Date().toISOString() };
   }
 };
 
-// Get API Statistics
 export const getApiStats = async () => {
   try {
-    const data = await apiFetch(`${DEAD_ANIME_API}/list?limit=100`);
-    const animeList = extractAnimeList(data);
-    
+    const data = await apiFetch(`${DEAD_ANIME_API}/list?limit=100`, { cache: 'default' });
+    const list = extractAnimeList(data);
     return {
-      total_anime: animeList.length,
-      total_movies: animeList.filter(a => a.type === 'movie').length,
-      total_series: animeList.filter(a => a.type !== 'movie').length,
-      timestamp: new Date().toISOString()
+      total_anime:  list.length,
+      total_movies: list.filter((a) => a.type === 'movie').length,
+      total_series: list.filter((a) => a.type !== 'movie').length,
+      timestamp:    new Date().toISOString(),
     };
   } catch (error) {
-    console.error('❌ Get API stats error:', error);
+    console.error('❌ getApiStats error:', error);
     return null;
   }
 };
 
-// ==================== EXPORTS ====================
+// ==================== DEFAULT EXPORT ====================
 const api = {
   searchAnime,
   getAnimeInfo,
